@@ -1,0 +1,108 @@
+<div class="content-page">
+  <h1>Guia de Endpoints — DataFlow</h1>
+
+  <p>Resumo das principais chamadas da API e do Reporting Service, incluindo preparação de parâmetros e exemplos de requisições.</p>
+
+  <h2>Visão Geral</h2>
+  <p>Serviços contemplados:</p>
+  <ul>
+    <li><strong>API</strong> (<code>DataFlow.Api</code>) — ingestão de arquivos e gestão de jobs.</li>
+    <li><strong>Reporting</strong> (<code>DataFlow.ReportingService</code>) — geração de relatórios a partir das métricas coletadas.</li>
+  </ul>
+  <p>Quando a stack está rodando via Docker Compose com proxy:</p>
+  <ul>
+    <li>API: <code>https://api.local:8443</code></li>
+    <li>Reporting: <code>https://reporting.local:8444</code></li>
+  </ul>
+  <blockquote><strong>Observação:</strong> Esta demonstração processa apenas arquivos CSV. Os tipos <code>json</code> e <code>parquet</code> ainda não possuem parsers/validações implementados.</blockquote>
+
+  <h2>Configurando hostnames locais</h2>
+  <ol>
+    <li>Abrir o Bloco de Notas como Administrador.</li>
+    <li>Editar <code>C:\Windows\System32\drivers\etc\hosts</code> e adicionar:
+      <pre><code>127.0.0.1 api.local
+127.0.0.1 reporting.local</code></pre>
+    </li>
+    <li>Reiniciar o proxy: <code>docker compose --profile proxy restart proxy</code>.</li>
+  </ol>
+
+  <h2>1. Script auxiliar <code>scripts\gera-parametros.bat</code></h2>
+  <ol>
+    <li>Executar <code>scripts\gera-parametros.bat</code> na raiz.</li>
+    <li>Informar o caminho do arquivo (ex.: <code>files\sample-data.csv</code>).</li>
+    <li>Opcional: informar <code>clientId</code> como segundo argumento.</li>
+    <li>O script calcula automaticamente checksum, nome, tamanho, contentType e fileType.</li>
+  </ol>
+  <blockquote>Arquivos de teste: <code>files/sample-data.csv</code> e <code>files/large-test-data.csv</code> (gerado via <code>gerar-csv-grande.cmd</code>).</blockquote>
+
+  <h3>Gerar arquivo grande</h3>
+  <pre><code># Modo interativo
+scripts\ingestion\gerar-csv-grande.cmd
+
+# Com parâmetro
+scripts\ingestion\gerar-csv-grande.cmd -TamanhoMB 100</code></pre>
+
+  <h2>2. API de Ingestão</h2>
+
+  <h3>2.1 Health Check</h3>
+  <ul>
+    <li><strong>Endpoint:</strong> <code>GET /health</code></li>
+    <li><strong>Resposta:</strong> <code>{ "status": "ok" }</code></li>
+  </ul>
+
+  <h3>2.2 Criar Job</h3>
+  <ul>
+    <li><strong>Endpoint:</strong> <code>POST /ingestion/jobs</code></li>
+    <li><strong>Conteúdo:</strong> <code>multipart/form-data</code></li>
+    <li><strong>Campos obrigatórios:</strong> <code>file</code>, <code>clientId</code>, <code>fileType</code> (=csv), <code>checksum</code>.</li>
+    <li><strong>Campos opcionais:</strong> <code>fileName</code>, <code>contentType</code>.</li>
+  </ul>
+  <pre><code>curl -k -X POST https://api.local:8443/ingestion/jobs \
+     -F "file=@files/sample-data.csv" \
+     -F "clientId=cliente-demo" \
+     -F "fileType=csv" \
+     -F "checksum=INSIRA_O_CHECKSUM"</code></pre>
+
+  <h3>2.3 Consultar Job</h3>
+  <pre><code>curl -k https://api.local:8443/ingestion/jobs/{id}</code></pre>
+  <p><strong>200:</strong> JSON com status | <strong>404:</strong> job inexistente.</p>
+
+  <h3>2.4 Processar novamente</h3>
+  <ul>
+    <li><code>POST /ingestion/jobs/{id}/process</code> — reenfileira o job.</li>
+    <li><code>POST /ingestion/jobs/{id}/retry</code> — reexecuta job que falhou.</li>
+    <li><code>POST /ingestion/jobs/{id}/reprocess</code> — reseta e reprocessa imediatamente.</li>
+  </ul>
+
+  <h3>2.5 Listar uploads</h3>
+  <ul>
+    <li><strong>Endpoint:</strong> <code>GET /storage/uploads</code></li>
+    <li><strong>Uso:</strong> diagnóstico dos arquivos presentes no storage.</li>
+  </ul>
+
+  <h2>3. Reporting Service</h2>
+
+  <h3>3.1 Health Check</h3>
+  <pre><code>curl -k https://reporting.local:8444/health</code></pre>
+
+  <h3>3.2 Relatório final</h3>
+  <pre><code>curl -k -X POST https://reporting.local:8444/reports/final \
+     -H "Content-Type: application/json" \
+     -d '{
+           "job": "dataflow-api",
+           "window": "15m",
+           "outputDir": "/tmp/reports"
+         }'</code></pre>
+
+  <h3>3.3 Relatório de exemplo</h3>
+  <pre><code>curl -k https://reporting.local:8444/reports/sample</code></pre>
+
+  <h2>4. Observações finais</h2>
+  <ol>
+    <li>Certificados autoassinados — usar <code>-k</code> ou importar os <code>.pem</code>.</li>
+    <li>Verifique que Postgres, Redis, RabbitMQ e observabilidade estão ativos.</li>
+    <li>Para rodar fora do proxy, ajuste URLs nos clientes.</li>
+    <li>Novos tipos de arquivo exigem implementação de <code>IFileParser</code> e <code>IValidationRule</code>.</li>
+  </ol>
+</div>
+

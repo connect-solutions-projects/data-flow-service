@@ -1,0 +1,307 @@
+<main class="main-content">
+  <section id="home" class="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Plataforma de ingestão em produção
+        </div>
+        <h1>DataFlow</h1>
+        <p class="hero-description">
+          Orquestre uploads massivos, processamento assíncrono e observabilidade completa com uma stack .NET 9 pensada para dados em escala.
+        </p>
+        <div class="hero-actions">
+          <a routerLink="/" fragment="operacoes" class="btn btn-primary">
+            <i class="fas fa-rocket"></i>
+            Começar agora
+          </a>
+          <a routerLink="/" fragment="arquitetura" class="btn btn-secondary">
+            <i class="fas fa-diagram-project"></i>
+            Ver arquitetura
+          </a>
+        </div>
+        <div class="hero-tags">
+          <span>.NET 9</span>
+          <span>Docker & Compose</span>
+          <span>RabbitMQ</span>
+          <span>OpenTelemetry</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-card">
+          <h3>Stack orquestrada</h3>
+          <ul class="hero-card-list">
+            <li><i class="fas fa-server"></i> API, Worker e Reporting prontos em perfis isolados</li>
+            <li><i class="fas fa-network-wired"></i> Mensageria MassTransit + RabbitMQ com deduplicação</li>
+            <li><i class="fas fa-chart-pie"></i> Observabilidade integrada com Prometheus e Grafana</li>
+          </ul>
+          <a routerLink="/" fragment="operacoes" class="hero-link">
+            Ver guias de operação <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card">
+            <span class="stat-value">03</span>
+            <span class="stat-label">Aplicações</span>
+            <p>API, Worker e Reporting com fluxos assíncronos conectados</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">08</span>
+            <span class="stat-label">Serviços de suporte</span>
+            <p>Infraestrutura automatizada via Docker Compose e perfis</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">100%</span>
+            <span class="stat-label">Observabilidade</span>
+            <p>Métricas, logs e traces instrumentados com OpenTelemetry</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="inicio-rapido" class="features features--blue">
+    <div class="container">
+      <h2 class="section-title">Início Rápido</h2>
+      <div class="features-grid inicio-rapido">
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-download"></i>
+          </div>
+          <h3>1. Instalar Docker</h3>
+          <p>Configure Docker e Docker Compose no seu ambiente</p>
+          <a [routerLink]="['/docs/operations/instalacao-docker']" class="btn-link">Ver Guia →</a>
+        </div>
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-server"></i>
+          </div>
+          <h3>2. Subir Infraestrutura</h3>
+          <p>Execute PostgreSQL, Redis, RabbitMQ e serviços de observabilidade</p>
+          <a [routerLink]="['/docs/operations/docker-compose']" class="btn-link">Ver Guia →</a>
+        </div>
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-cogs"></i>
+          </div>
+          <h3>3. Subir Aplicações</h3>
+          <p>Inicie API, Worker e Reporting Service</p>
+          <a [routerLink]="['/docs/operations/manual-completo']" class="btn-link">Ver Manual →</a>
+        </div>
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>4. Testar Sistema</h3>
+          <p>Faça upload de arquivos e verifique o processamento</p>
+          <a [routerLink]="['/docs/tutorials/endpoints-api']" class="btn-link">Ver Tutorial →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="arquitetura" class="resumo features features--teal">
+    <div class="container">
+      <h2 class="section-title">Arquitetura</h2>
+      <div class="features-grid">
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-diagram-project"></i>
+          </div>
+          <h3>Arquitetura Técnica</h3>
+          <p>Visão detalhada da arquitetura do sistema, componentes e fluxos</p>
+          <a [routerLink]="['/docs/architecture/arquitetura-tecnica']" class="btn-link">Ler Documento →</a>
+        </div>
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <h3>Decisões Técnicas</h3>
+          <p>Justificativas das escolhas tecnológicas e padrões utilizados</p>
+          <a [routerLink]="['/docs/architecture/decisoes-tecnicas']" class="btn-link">Ler Documento →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="operacoes" class="features features--purple">
+    <div class="container">
+      <h2 class="section-title">Operações</h2>
+      <div class="features-grid">
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-download"></i>
+          </div>
+          <h3>Instalação Docker</h3>
+          <p>Guia completo de instalação do Docker e Docker Compose</p>
+          <a [routerLink]="['/docs/operations/instalacao-docker']" class="btn-link">Ler Guia →</a>
+        </div>
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-docker"></i>
+          </div>
+          <h3>Docker Compose</h3>
+          <p>Como usar os arquivos docker-compose do projeto</p>
+          <a [routerLink]="['/docs/operations/docker-compose']" class="btn-link">Ler Guia →</a>
+        </div>
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-book-open"></i>
+          </div>
+          <h3>Manual Completo</h3>
+          <p>Passo a passo completo de instalação, implantação e testes</p>
+          <a [routerLink]="['/docs/operations/manual-completo']" class="btn-link">Ler Manual →</a>
+        </div>
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+          </div>
+          <h3>Deploy Docker Hub</h3>
+          <p>Automatize build e push das imagens para o Docker Hub</p>
+          <a [routerLink]="['/docs/operations/docker-hub']" class="btn-link">Ler Guia →</a>
+        </div>
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-tags"></i>
+          </div>
+          <h3>Tag & Push Docker</h3>
+          <p>Como criar tags e publicar imagens já geradas via compose</p>
+          <a [routerLink]="['/docs/operations/tag-push-docker']" class="btn-link">Ler Tutorial →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tutoriais" class="projetos">
+    <div class="container">
+      <h2 class="section-title">Tutoriais</h2>
+      <div class="projects-grid">
+        <div class="project-card scroll-reveal" appScrollReveal>
+          <div class="project-icon">
+            <i class="fas fa-plug"></i>
+          </div>
+          <h3>Endpoints da API</h3>
+          <p>Como usar os endpoints da API DataFlow para ingestão de arquivos</p>
+          <div class="project-tech">
+            <span class="tech-tag">REST API</span>
+            <span class="tech-tag">Swagger</span>
+            <span class="tech-tag">.NET 9</span>
+          </div>
+          <a [routerLink]="['/docs/tutorials/endpoints-api']" class="project-link">
+            <i class="fas fa-external-link-alt"></i>
+            Ver Tutorial
+          </a>
+        </div>
+        <div class="project-card scroll-reveal" appScrollReveal>
+          <div class="project-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Grafana & Prometheus</h3>
+          <p>Guia completo de monitoramento e observabilidade com Grafana e Prometheus</p>
+          <div class="project-tech">
+            <span class="tech-tag">Grafana</span>
+            <span class="tech-tag">Prometheus</span>
+            <span class="tech-tag">Métricas</span>
+          </div>
+          <a [routerLink]="['/docs/tutorials/grafana-prometheus']" class="project-link">
+            <i class="fas fa-external-link-alt"></i>
+            Ver Tutorial
+          </a>
+        </div>
+        <div class="project-card scroll-reveal" appScrollReveal>
+          <div class="project-icon">
+            <i class="fas fa-terminal"></i>
+          </div>
+          <h3>Scripts</h3>
+          <p>Catálogo e uso dos scripts disponíveis para facilitar o desenvolvimento</p>
+          <div class="project-tech">
+            <span class="tech-tag">PowerShell</span>
+            <span class="tech-tag">Batch</span>
+            <span class="tech-tag">Utilitários</span>
+          </div>
+          <a [routerLink]="['/docs/tutorials/scripts']" class="project-link">
+            <i class="fas fa-external-link-alt"></i>
+            Ver Tutorial
+          </a>
+        </div>
+        <div class="project-card scroll-reveal" appScrollReveal>
+          <div class="project-icon">
+            <i class="fas fa-server"></i>
+          </div>
+          <h3>Executar Fora do Docker</h3>
+          <p>Como executar os serviços manualmente fora do Docker</p>
+          <div class="project-tech">
+            <span class="tech-tag">.NET 9</span>
+            <span class="tech-tag">Local</span>
+            <span class="tech-tag">Desenvolvimento</span>
+          </div>
+          <a [routerLink]="['/docs/tutorials/executar-fora-docker']" class="project-link">
+            <i class="fas fa-external-link-alt"></i>
+            Ver Tutorial
+          </a>
+        </div>
+        <div class="project-card scroll-reveal" appScrollReveal>
+          <div class="project-icon">
+            <i class="fas fa-key"></i>
+          </div>
+          <h3>OpenSSL no PATH</h3>
+          <p>Guia para habilitar o OpenSSL em ambientes Windows</p>
+          <div class="project-tech">
+            <span class="tech-tag">OpenSSL</span>
+            <span class="tech-tag">Windows</span>
+          </div>
+          <a [routerLink]="['/docs/tutorials/adicionar-openssl-path']" class="project-link">
+            <i class="fas fa-external-link-alt"></i>
+            Ver Tutorial
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="templates" class="features features--teal">
+    <div class="container">
+      <h2 class="section-title">Templates</h2>
+      <div class="features-grid">
+        <div class="feature-card scroll-reveal" appScrollReveal>
+          <div class="feature-icon">
+            <i class="fas fa-file-signature"></i>
+          </div>
+          <h3>Modelo de Relatório Final</h3>
+          <p>Template para consolidar resultados de execução e observabilidade</p>
+          <a [routerLink]="['/docs/templates/modelo-relatorio']" class="btn-link">Abrir Template →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="links" class="contato">
+    <div class="container">
+      <h2 class="section-title">Links Rápidos</h2>
+      <div class="contato-grid">
+        <a class="contato-card scroll-reveal" appScrollReveal href="https://api.local:8443/swagger" target="_blank" rel="noopener">
+          <i class="fas fa-code"></i>
+          <h3>API</h3>
+        </a>
+        <a class="contato-card scroll-reveal" appScrollReveal href="https://reporting.local:8444/swagger" target="_blank" rel="noopener">
+          <i class="fas fa-file-alt"></i>
+          <h3>Reporting</h3>
+        </a>
+        <a class="contato-card scroll-reveal" appScrollReveal href="http://localhost:3000" target="_blank" rel="noopener">
+          <i class="fas fa-chart-line"></i>
+          <h3>Grafana</h3>
+        </a>
+        <a class="contato-card scroll-reveal" appScrollReveal href="http://localhost:9090" target="_blank" rel="noopener">
+          <i class="fas fa-database"></i>
+          <h3>Prometheus</h3>
+        </a>
+        <a class="contato-card scroll-reveal" appScrollReveal href="http://localhost:15672" target="_blank" rel="noopener">
+          <i class="fas fa-exchange-alt"></i>
+          <h3>RabbitMQ</h3>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+

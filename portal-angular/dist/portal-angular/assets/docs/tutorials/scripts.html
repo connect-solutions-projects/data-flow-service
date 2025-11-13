@@ -1,0 +1,46 @@
+<div class="content-page">
+  <h1>Scripts Úteis do Projeto</h1>
+
+  <p>Os utilitários foram organizados em subpastas dentro de <code>scripts/</code> conforme a finalidade. Utilize este guia para encontrar rapidamente o script certo.</p>
+
+  <h2><code>scripts/certs/</code></h2>
+  <ul>
+    <li><strong>generate-dev-certs.ps1</strong>: gera certificados autoassinados para <code>api.local</code> e <code>reporting.local</code>, produzindo <code>fullchain.pem</code> e <code>privkey.pem</code>.</li>
+    <li><strong>generate-dev-certs.cmd</strong>: wrapper para execução via Prompt de Comando.</li>
+  </ul>
+  <pre><code>scripts\certs\generate-dev-certs.cmd</code></pre>
+
+  <h2><code>scripts/ingestion/</code></h2>
+  <ul>
+    <li><strong>gera-parametros.bat</strong>: calcula checksum, tamanho, nome e contentType para uso no <code>POST /ingestion/jobs</code>.</li>
+  </ul>
+  <pre><code>scripts\ingestion\gera-parametros.bat</code></pre>
+  <a class="download-link" href="/assets/downloads/gera-parametros.zip" download target="_blank">Download</a>
+  <p>Informe o caminho completo do arquivo quando solicitado (ex.: <code>C:\dados\lote.csv</code>).</p>
+  <ul>
+    <li><strong>gerar-csv-grande.ps1/cmd</strong>: gera um arquivo CSV de teste com tamanho configurável (padrão 50 MB). O arquivo é salvo em <code>files/large-test-data.csv</code>.</li>
+  </ul>
+  <pre><code># Interativo
+scripts\ingestion\gerar-csv-grande.cmd
+
+# Definindo tamanho
+scripts\ingestion\gerar-csv-grande.cmd -TamanhoMB 100</code></pre>
+  <a class="download-link" href="/assets/downloads/gerar-csv-grande.zip" download target="_blank">Download</a>
+
+  <h2><code>scripts/diagrams/</code></h2>
+  <ul>
+    <li><strong>render_mermaid_diagram.ps1</strong>: converte o diagrama Mermaid em PNG/SVG usando <code>@mermaid-js/mermaid-cli</code>.</li>
+    <li><strong>render_mermaid_diagram.cmd</strong>: wrapper para execução via CMD.</li>
+  </ul>
+  <pre><code>scripts\diagrams\render_mermaid_diagram.cmd</code></pre>
+  <p>Pré-requisito: Node.js com <code>@mermaid-js/mermaid-cli</code> disponível via <code>npx</code>.</p>
+
+  <h2>Resumo</h2>
+  <ul>
+    <li><strong>Certificados</strong> → <code>scripts/certs/</code>.</li>
+    <li><strong>Auxílio de ingestão</strong> → <code>scripts/ingestion/</code>.</li>
+    <li><strong>Diagramas</strong> → <code>scripts/diagrams/</code>.</li>
+  </ul>
+  <p>Mantenha este guia atualizado sempre que novos utilitários forem adicionados ou alterados.</p>
+</div>
+

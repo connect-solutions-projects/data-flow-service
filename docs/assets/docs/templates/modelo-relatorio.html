@@ -1,0 +1,54 @@
+<div class="content-page">
+  <h1>Modelo — Relatório Final</h1>
+
+  <p>Use esta estrutura como referência para consolidar os resultados da avaliação do DataFlow ou complemente com o relatório automático gerado pelo Reporting Service.</p>
+
+  <h2>Resumo executivo</h2>
+  <ul>
+    <li>Objetivo do teste, escopo e principais achados.</li>
+  </ul>
+
+  <h2>Estado do Stack</h2>
+  <ul>
+    <li>Serviços ativos na <code>docker-network</code> e portas expostas.</li>
+    <li>Datasource do Grafana validado contra <code>docker-prometheus:9090</code>.</li>
+  </ul>
+
+  <h2>Métricas Principais (janela &lt;window&gt;)</h2>
+  <ul>
+    <li>Taxa de requisições: <code>rate(http_requests_total[5m])</code>.</li>
+    <li>Latência p95: <code>histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))</code>.</li>
+    <li>Por status: <code>sum by(status) (rate(http_requests_total[5m]))</code>.</li>
+  </ul>
+
+  <h2>Dashboards e Imagens</h2>
+  <ul>
+    <li>Links do Grafana com período aplicado.</li>
+    <li>Imagens exportadas (PNG) anexadas.</li>
+  </ul>
+
+  <h2>Operações Executadas</h2>
+  <ul>
+    <li>Comandos utilizados (docker compose, scripts, endpoints).</li>
+    <li>Geração de tráfego e janela de análise.</li>
+  </ul>
+
+  <h2>Resultados e Observações</h2>
+  <ul>
+    <li>Principais resultados, anomalias e insights.</li>
+    <li>Riscos, limitações e sugestões.</li>
+  </ul>
+
+  <h2>Próximos Passos</h2>
+  <ul>
+    <li>Ações recomendadas pós-teste.</li>
+  </ul>
+
+  <h2>Anexos</h2>
+  <ul>
+    <li>Logs relevantes (trechos) e referências.</li>
+  </ul>
+
+  <blockquote>Dicas: exporte imagens via Grafana (Share → Export → PNG) e utilize o endpoint <code>POST /reports/final</code> para gerar um relatório automático em Markdown.</blockquote>
+</div>
+

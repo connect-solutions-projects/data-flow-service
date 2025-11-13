@@ -1,0 +1,151 @@
+<div class="content-page">
+  <h1>Guia de Instalação do Docker e Docker Compose</h1>
+
+  <p>Este guia explica como instalar o Docker e Docker Compose no Windows, Linux e macOS, e como executar os arquivos docker-compose do projeto DataFlow.</p>
+
+  <h2 id="windows">💻 Instalação no Windows</h2>
+
+  <h3>Opção 1: Docker Desktop (Recomendado)</h3>
+  <ol>
+    <li><strong>Baixar Docker Desktop:</strong>
+      <ul>
+        <li>Acesse: <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">https://www.docker.com/products/docker-desktop/</a></li>
+        <li>Clique em "Download for Windows"</li>
+        <li>Escolha a versão para WSL2 (recomendado)</li>
+      </ul>
+    </li>
+    <li><strong>Instalar:</strong>
+      <ul>
+        <li>Execute o instalador <code>.exe</code></li>
+        <li>Quando solicitar, habilite WSL 2</li>
+        <li>Reinicie o computador, se necessário</li>
+      </ul>
+    </li>
+    <li><strong>Verificar instalação:</strong>
+      <pre><code>docker --version
+docker compose version</code></pre>
+    </li>
+  </ol>
+
+  <h3>Opção 2: WSL 2 + Docker Engine</h3>
+  <p>Se quiser instalar direto no WSL (Ubuntu ou outra distro), siga o guia oficial: <a href="https://docs.docker.com/engine/install/ubuntu/" target="_blank" rel="noopener">Instalação Docker Engine no Ubuntu</a>.</p>
+
+  <h2 id="linux">🐧 Instalação no Linux (Ubuntu/Debian)</h2>
+  <ol>
+    <li><strong>Remover versões antigas:</strong>
+      <pre><code>sudo apt-get remove docker docker-engine docker.io containerd runc</code></pre>
+    </li>
+    <li><strong>Atualizar pacotes:</strong>
+      <pre><code>sudo apt-get update</code></pre>
+    </li>
+    <li><strong>Instalar dependências:</strong>
+      <pre><code>sudo apt-get install \
+  ca-certificates \
+  curl \
+  gnupg \
+  lsb-release</code></pre>
+    </li>
+    <li><strong>Adicionar chave GPG oficial:</strong>
+      <pre><code>curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg</code></pre>
+    </li>
+    <li><strong>Adicionar repositório Docker:</strong>
+      <pre><code>echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null</code></pre>
+    </li>
+    <li><strong>Instalar Docker + Compose plugin:</strong>
+      <pre><code>sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin</code></pre>
+    </li>
+    <li><strong>Testar instalação:</strong>
+      <pre><code>sudo docker run hello-world</code></pre>
+    </li>
+  </ol>
+
+  <h3>Habilitar uso sem sudo</h3>
+  <pre><code>sudo usermod -aG docker $USER
+# Faça logout e login novamente</code></pre>
+
+  <h2 id="macos">🍎 Instalação no macOS</h2>
+
+  <h3>Opção 1: Docker Desktop (Recomendado)</h3>
+  <ol>
+    <li><strong>Baixar Docker Desktop:</strong>
+      <ul>
+        <li>Acesse: <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">https://www.docker.com/products/docker-desktop/</a></li>
+        <li>Clique em "Download for Mac"</li>
+        <li>Escolha a versão para Intel ou Apple Silicon (M1/M2)</li>
+      </ul>
+    </li>
+    <li><strong>Instalar:</strong>
+      <ul>
+        <li>Abra o arquivo <code>.dmg</code> baixado</li>
+        <li>Arraste o Docker para a pasta Applications</li>
+        <li>Abra o Docker Desktop da pasta Applications</li>
+        <li>Siga o assistente de configuração</li>
+      </ul>
+    </li>
+    <li><strong>Verificar instalação:</strong>
+      <pre><code>docker --version
+docker compose version</code></pre>
+    </li>
+  </ol>
+
+  <h2 id="verificacao">Verificação da Instalação</h2>
+  <p>Após instalar, verifique se tudo está funcionando:</p>
+
+  <h3>1. Verificar versões</h3>
+  <pre><code>docker --version
+# Deve mostrar algo como: Docker version 24.0.0, build abc123
+
+docker compose version
+# Deve mostrar algo como: Docker Compose version v2.20.0</code></pre>
+
+  <h3>2. Testar Docker</h3>
+  <pre><code>docker run hello-world</code></pre>
+  <p>Se funcionar, você verá uma mensagem de sucesso do Docker.</p>
+
+  <h2 id="executando">Executando Docker Compose</h2>
+
+  <h3>Pré-requisitos</h3>
+  <ol>
+    <li><strong>Navegar para o diretório do projeto:</strong>
+      <pre><code>cd C:\Users\rodrigo\Documents\Projetos\ConnectSolutions\Github\data-flow-service</code></pre>
+    </li>
+    <li><strong>Criar a rede Docker (se necessário):</strong>
+      <pre><code>docker network create dev_net</code></pre>
+    </li>
+  </ol>
+
+  <h3>Passo 1: Subir a Infraestrutura</h3>
+  <p>Execute o arquivo de infraestrutura primeiro:</p>
+  <pre><code>docker compose -f docker-compose.infrastructure.yml --profile infra up -d</code></pre>
+  <p>Isso criará: PostgreSQL, Redis, RabbitMQ, Prometheus, Grafana e Exporters.</p>
+
+  <h3>Passo 2: Subir as Aplicações</h3>
+  <p>Depois que a infraestrutura estiver rodando, suba as aplicações:</p>
+  <pre><code>docker compose --profile proxy --profile api --profile worker --profile reporting up -d</code></pre>
+  <p>Isso criará: DataFlow API, Worker, Reporting Service e Nginx Proxy.</p>
+
+  <h2 id="comandos">Comandos Úteis</h2>
+  <h3>Ver Status dos Containers</h3>
+  <pre><code>docker compose ps</code></pre>
+  <h3>Ver Logs</h3>
+  <pre><code>docker compose logs -f</code></pre>
+  <h3>Parar Serviços</h3>
+  <pre><code>docker compose down</code></pre>
+
+  <h2 id="troubleshooting">Troubleshooting</h2>
+
+  <h3>Erro: "docker: command not found"</h3>
+  <p><strong>Solução:</strong> Verifique se o Docker está instalado e no PATH.</p>
+
+  <h3>Erro: "Cannot connect to the Docker daemon"</h3>
+  <p><strong>Solução:</strong> Inicie o Docker Desktop (Windows/macOS) ou execute <code>sudo systemctl start docker</code> (Linux).</p>
+
+  <h3>Erro: "permission denied"</h3>
+  <p><strong>Solução (Linux):</strong> Adicione seu usuário ao grupo docker:</p>
+  <pre><code>sudo usermod -aG docker $USER
+# Faça logout e login novamente</code></pre>
+</div>
+

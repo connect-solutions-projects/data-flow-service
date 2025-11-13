@@ -70,6 +70,35 @@
             color: #e2e8f0;
             padding: 0;
         }
+        .content-page li pre {
+            margin-bottom: 0.25rem;
+        }
+        .content-page .download-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.1rem;
+            margin-bottom: 0.75rem;
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.18), rgba(118, 75, 162, 0.25));
+            color: #4f46e5;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .content-page .download-link::before {
+            content: "\f019";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 0.85rem;
+        }
+        .content-page .download-link:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.28), rgba(118, 75, 162, 0.35));
+            color: #312e81;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+        }
         .content-page blockquote {
             border-left: 4px solid #667eea;
             background: rgba(102, 126, 234, 0.08);
@@ -180,10 +209,12 @@ scripts\ingestion\gerar-csv-grande.cmd
 
 # Com tamanho em MB
 scripts\ingestion\gerar-csv-grande.cmd -TamanhoMB 100</code></pre>
+                        <a class="download-link" href="../downloads/gerar-csv-grande.zip" download target="_blank">Download</a>
                         <p>O arquivo é salvo em <code>files/large-test-data.csv</code>.</p>
                     </li>
                     <li>Gerar parâmetros com o batch:
                         <pre><code>scripts\ingestion\gera-parametros.bat</code></pre>
+                        <a class="download-link" href="../downloads/gera-parametros.zip" download target="_blank">Download</a>
                     </li>
                     <li>Enviar o arquivo:
                         <pre><code>curl -k -X POST https://api.local:8443/ingestion/jobs \

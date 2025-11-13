@@ -124,39 +124,39 @@ data-flow-data-flow-reporting  latest    789ghi012jkl   2 hours ago   248MB</cod
 
                 <h2>Passo 1 — Criar novas tags</h2>
                 <pre><code># API
-docker tag data-flow-data-flow-api:latest rudrigo1978/data-flow-api:latest
+docker tag data-flow-data-flow-api:latest seu-usuario/data-flow-api:latest
 
 # Reporting
-docker tag data-flow-data-flow-reporting:latest rudrigo1978/data-flow-reporting:latest
+docker tag data-flow-data-flow-reporting:latest seu-usuario/data-flow-reporting:latest
 
 # Worker
-docker tag data-flow-data-flow-worker:latest rudrigo1978/data-flow-worker:latest</code></pre>
+docker tag data-flow-data-flow-worker:latest seu-usuario/data-flow-worker:latest</code></pre>
 
                 <h2>Passo 2 — Enviar para o Docker Hub</h2>
-                <pre><code>docker push rudrigo1978/data-flow-api:latest
-docker push rudrigo1978/data-flow-reporting:latest
-docker push rudrigo1978/data-flow-worker:latest</code></pre>
+                <pre><code>docker push seu-usuario/data-flow-api:latest
+docker push seu-usuario/data-flow-reporting:latest
+docker push seu-usuario/data-flow-worker:latest</code></pre>
 
                 <h2>Script completo</h2>
                 <pre><code># 1. Login
-docker login -u rudrigo1978
+docker login -u seu-usuario
 
 # 2. Tags
-docker tag data-flow-data-flow-api:latest rudrigo1978/data-flow-api:latest
-docker tag data-flow-data-flow-reporting:latest rudrigo1978/data-flow-reporting:latest
-docker tag data-flow-data-flow-worker:latest rudrigo1978/data-flow-worker:latest
+docker tag data-flow-data-flow-api:latest seu-usuario/data-flow-api:latest
+docker tag data-flow-data-flow-reporting:latest seu-usuario/data-flow-reporting:latest
+docker tag data-flow-data-flow-worker:latest seu-usuario/data-flow-worker:latest
 
 # 3. Push
-docker push rudrigo1978/data-flow-api:latest
-docker push rudrigo1978/data-flow-reporting:latest
-docker push rudrigo1978/data-flow-worker:latest</code></pre>
+docker push seu-usuario/data-flow-api:latest
+docker push seu-usuario/data-flow-reporting:latest
+docker push seu-usuario/data-flow-worker:latest</code></pre>
 
                 <h2>Explicando os comandos</h2>
                 <h3><code>docker tag</code></h3>
                 <p>Cria uma nova referência para a imagem sem duplicar conteúdo.</p>
                 <pre><code>docker tag IMAGEM_ORIGEM:tag IMAGEM_DESTINO:tag</code></pre>
                 <p>Exemplo:</p>
-                <pre><code>docker tag data-flow-data-flow-api:latest rudrigo1978/data-flow-api:latest</code></pre>
+                <pre><code>docker tag data-flow-data-flow-api:latest seu-usuario/data-flow-api:latest</code></pre>
 
                 <h3><code>docker push</code></h3>
                 <p>Publica a imagem no registry.</p>
@@ -164,21 +164,21 @@ docker push rudrigo1978/data-flow-worker:latest</code></pre>
 
                 <h2>Verificação</h2>
                 <ol>
-                    <li>Acesse <a href="https://hub.docker.com/r/rudrigo1978/data-flow-api" target="_blank">dockerhub/data-flow-api</a>.</li>
+                    <li>Acesse <a href="https://hub.docker.com/r/seu-usuario/data-flow-api" target="_blank">dockerhub/data-flow-api</a>.</li>
                     <li>Confirme a tag <code>latest</code>.</li>
                     <li>Repita para reporting e worker.</li>
                 </ol>
 
                 <h2>Versões específicas</h2>
                 <pre><code># Criar tag 1.0.0
-docker tag data-flow-data-flow-api:latest rudrigo1978/data-flow-api:1.0.0
+docker tag data-flow-data-flow-api:latest seu-usuario/data-flow-api:1.0.0
 
 # Publicar
-docker push rudrigo1978/data-flow-api:1.0.0</code></pre>
+docker push seu-usuario/data-flow-api:1.0.0</code></pre>
 
                 <h2>Troubleshooting</h2>
                 <h3>"unauthorized: authentication required"</h3>
-                <pre><code>docker login -u rudrigo1978</code></pre>
+                <pre><code>docker login -u seu-usuario</code></pre>
                 <h3>"denied: requested access to the resource is denied"</h3>
                 <ul>
                     <li>Confirme usuário e permissões.</li>
@@ -191,13 +191,13 @@ docker compose --profile api --profile worker --profile reporting build</code></
 
                 <h2>Comandos adicionais</h2>
                 <pre><code># Listar tags locais
-docker images rudrigo1978/data-flow-api
+docker images seu-usuario/data-flow-api
 
 # Remover tag local
-docker rmi rudrigo1978/data-flow-api:latest
+docker rmi seu-usuario/data-flow-api:latest
 
 # Ver histórico
-docker history rudrigo1978/data-flow-api:latest</code></pre>
+docker history seu-usuario/data-flow-api:latest</code></pre>
 
             </div>
         </div>
