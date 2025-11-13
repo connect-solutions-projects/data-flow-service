@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripts Úteis - DataFlow</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .content-page {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            max-width: 900px;
+        }
+        .content-page h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1rem;
+        }
+        .content-page h2 {
+            font-size: 2rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .content-page h3 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #333;
+        }
+        .content-page p {
+            margin-bottom: 1rem;
+            color: #666;
+            line-height: 1.8;
+        }
+        .content-page ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #666;
+        }
+        .content-page li {
+            margin-bottom: 0.5rem;
+        }
+        .content-page code {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content-page pre {
+            background: #0a0e1a;
+            border: 1px solid #1f2a44;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+    </style>
+</head>
+<body class="docs-page">
+    <header class="header">
+        <nav class="nav container">
+            <div class="header-brand">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-project-diagram"></i>
+                    DataFlow
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Início</a></li>
+                <li><a href="../index.html#arquitetura">Arquitetura</a></li>
+                <li><a href="../index.html#operacoes">Operações</a></li>
+                <li><a href="../index.html#tutoriais">Tutoriais</a></li>
+                <li><a href="../index.html#links">Links</a></li>
+            </ul>
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="content-page">
+                <h1>Scripts Úteis do Projeto</h1>
+
+                <p>Os utilitários foram organizados em subpastas dentro de <code>scripts/</code> conforme a finalidade. Utilize este guia para encontrar rapidamente o script certo.</p>
+
+                <h2><code>scripts/certs/</code></h2>
+                <ul>
+                    <li><strong>generate-dev-certs.ps1</strong>: gera certificados autoassinados para <code>api.local</code> e <code>reporting.local</code>, produzindo <code>fullchain.pem</code> e <code>privkey.pem</code>.</li>
+                    <li><strong>generate-dev-certs.cmd</strong>: wrapper para execução via Prompt de Comando.</li>
+                </ul>
+                <pre><code>scripts\certs\generate-dev-certs.cmd</code></pre>
+
+                <h2><code>scripts/ingestion/</code></h2>
+                <ul>
+                    <li><strong>gera-parametros.bat</strong>: calcula checksum, tamanho, nome e contentType para uso no <code>POST /ingestion/jobs</code>.</li>
+                </ul>
+                <pre><code>scripts\ingestion\gera-parametros.bat</code></pre>
+                <p>Informe o caminho completo do arquivo quando solicitado (ex.: <code>C:\dados\lote.csv</code>).</p>
+                <ul>
+                    <li><strong>gerar-csv-grande.ps1/cmd</strong>: gera arquivo CSV de teste com tamanho configurável (padrão 50 MB) e grava em <code>files/large-test-data.csv</code>.</li>
+                </ul>
+                <pre><code># Interativo
+scripts\ingestion\gerar-csv-grande.cmd
+
+# Definindo tamanho
+scripts\ingestion\gerar-csv-grande.cmd -TamanhoMB 100</code></pre>
+
+                <h2><code>scripts/diagrams/</code></h2>
+                <ul>
+                    <li><strong>render_mermaid_diagram.ps1</strong>: converte o diagrama Mermaid em PNG/SVG usando <code>@mermaid-js/mermaid-cli</code>.</li>
+                    <li><strong>render_mermaid_diagram.cmd</strong>: wrapper para execução via CMD.</li>
+                </ul>
+                <pre><code>scripts\diagrams\render_mermaid_diagram.cmd</code></pre>
+                <p>Pré-requisito: Node.js com <code>@mermaid-js/mermaid-cli</code> disponível via <code>npx</code>.</p>
+
+                <h2>Resumo</h2>
+                <ul>
+                    <li><strong>Certificados</strong> → <code>scripts/certs/</code>.</li>
+                    <li><strong>Auxílio de ingestão</strong> → <code>scripts/ingestion/</code>.</li>
+                    <li><strong>Diagramas</strong> → <code>scripts/diagrams/</code>.</li>
+                </ul>
+                <p>Mantenha este guia atualizado sempre que novos utilitários forem adicionados ou alterados.</p>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>DataFlow</h3>
+                    <p>Plataforma de Ingestão e Processamento de Dados</p>
+                </div>
+                <div class="footer-links">
+                    <a href="../index.html#home">Início</a>
+                    <a href="../index.html#arquitetura">Arquitetura</a>
+                    <a href="../index.html#operacoes">Operações</a>
+                    <a href="../index.html#tutoriais">Tutoriais</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 DataFlow - Portal de Documentação. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

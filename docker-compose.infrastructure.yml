@@ -1,0 +1,88 @@
+name: data-flow-infra
+
+networks:
+  dev_net:
+    name: dev_net
+    external: false
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: supersecret_admin
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [dev_net]
+    restart: unless-stopped
+    profiles: ["infra"]
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks: [dev_net]
+    restart: unless-stopped
+    profiles: ["infra"]
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: supersecret_admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks: [dev_net]
+    restart: unless-stopped
+    profiles: ["infra"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks: [dev_net]
+    restart: unless-stopped
+    profiles: ["infra"]
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks: [dev_net]
+    restart: unless-stopped
+    profiles: ["infra"]
+
+  redis-exporter:
+    image: oliver006/redis_exporter
+    container_name: redis-exporter
+    ports:
+      - "9121:9121"
+    networks: [dev_net]
+    restart: unless-stopped
+    profiles: ["infra"]
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:supersecret_admin@postgres:5432/postgres?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks: [dev_net]
+    restart: unless-stopped
+    profiles: ["infra"]
+
+volumes:
+  postgres_data:
+

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Execução Fora do Docker - DataFlow</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .content-page {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            max-width: 960px;
+        }
+        .content-page h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1rem;
+        }
+        .content-page h2 {
+            font-size: 2rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .content-page h3 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #333;
+        }
+        .content-page p {
+            margin-bottom: 1rem;
+            color: #666;
+            line-height: 1.8;
+        }
+        .content-page ul,
+        .content-page ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+            color: #666;
+        }
+        .content-page li {
+            margin-bottom: 0.5rem;
+        }
+        .content-page code {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content-page pre {
+            background: #0a0e1a;
+            border: 1px solid #1f2a44;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        .content-page blockquote {
+            border-left: 4px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.12);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: #744210;
+            margin: 1.5rem 0;
+        }
+    </style>
+</head>
+<body class="docs-page">
+    <header class="header">
+        <nav class="nav container">
+            <div class="header-brand">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-project-diagram"></i>
+                    DataFlow
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Início</a></li>
+                <li><a href="../index.html#arquitetura">Arquitetura</a></li>
+                <li><a href="../index.html#operacoes">Operações</a></li>
+                <li><a href="../index.html#tutoriais">Tutoriais</a></li>
+                <li><a href="../index.html#links">Links</a></li>
+            </ul>
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="content-page">
+                <h1>Execução do DataFlow Fora do Docker</h1>
+
+                <blockquote>Este fluxo é opcional e exige configuração manual de todas as dependências. O modo suportado oficialmente é via Docker Compose.</blockquote>
+
+                <h2>1. Pré-requisitos</h2>
+                <ol>
+                    <li><strong>.NET 9 SDK</strong> instalado.</li>
+                    <li>Dependências locais:
+                        <ul>
+                            <li>PostgreSQL 15+</li>
+                            <li>Redis 7+</li>
+                            <li>RabbitMQ 3.12+</li>
+                        </ul>
+                    </li>
+                    <li>Ferramentas opcionais:
+                        <ul>
+                            <li><code>dotnet-ef</code> para migrations.</li>
+                            <li>Node.js (diagramas).</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <h2>2. Provisionar dependências</h2>
+                <ul>
+                    <li><strong>PostgreSQL:</strong> crie banco (ex.: <code>dataflow</code>), usuário e senha.</li>
+                    <li><strong>Redis:</strong> iniciar serviço (<code>redis-server</code>).</li>
+                    <li><strong>RabbitMQ:</strong> iniciar (<code>rabbitmq-service start</code>) e habilitar UI se desejado.</li>
+                </ul>
+
+                <h2>3. Variáveis de ambiente</h2>
+                <pre><code>$env:ConnectionStrings__Postgres = "Host=localhost;Port=5432;Database=dataflow;Username=dataflow_admin;Password=dataflow_admin"
+$env:ConnectionStrings__Redis = "localhost:6379"
+$env:Rabbit__Connection = "amqp://guest:guest@localhost:5672/"
+$env:RABBIT__HOST = "localhost"
+$env:REDIS__HOST = "localhost"
+$env:POSTGRES__HOST = "localhost"</code></pre>
+                <p>Opcional: criar <code>appsettings.Development.local.json</code> com essas configurações (não versionar).</p>
+
+                <h2>4. Aplicar migrations (Postgres)</h2>
+                <pre><code>cd src\apps\DataFlow.Api
+dotnet ef database update</code></pre>
+                <p>Repita se necessário para outros projetos que utilizam o contexto.</p>
+
+                <h2>5. Executar os serviços</h2>
+                <h3>API</h3>
+                <pre><code>cd src\apps\DataFlow.Api
+dotnet run --project DataFlow.Api.csproj</code></pre>
+                <p>Disponível em <code>https://localhost:5001</code> (ajuste <code>ASPNETCORE_URLS</code> se necessário).</p>
+                <h3>Worker</h3>
+                <pre><code>cd src\apps\DataFlow.Worker
+dotnet run --project DataFlow.Worker.csproj</code></pre>
+                <h3>Reporting Service</h3>
+                <pre><code>cd src\apps\DataFlow.ReportingService
+dotnet run --project DataFlow.ReportingService.csproj</code></pre>
+                <p>Configure <code>PROMETHEUS_URL</code> e <code>GRAFANA_URL</code> para apontar para os serviços em execução.</p>
+
+                <h2>6. Observabilidade</h2>
+                <ul>
+                    <li>Instalar Prometheus/Grafana localmente ou</li>
+                    <li>Executar somente o stack de observabilidade via Docker Compose: <code>docker compose up -d otel-collector prometheus grafana grafana-renderer</code>.</li>
+                </ul>
+
+                <h2>7. Ajuste de endpoints</h2>
+                <p>Sem o Nginx, acesse Swagger diretamente nas portas de desenvolvimento (<code>https://localhost:&lt;porta&gt;/swagger</code>). Configure proxy ou atualize URLs conforme necessidade.</p>
+
+                <h2>8. Scripts úteis</h2>
+                <ul>
+                    <li><code>scripts/ingestion/gera-parametros.bat</code> — continua válido.</li>
+                    <li>Use <code>curl</code> apontando para <code>https://localhost:5001</code>.</li>
+                </ul>
+
+                <h2>9. Limitações</h2>
+                <ul>
+                    <li>Dockerfiles contêm ajustes não replicados neste modo.</li>
+                    <li>Gerenciamento de certificados HTTPS fica por sua conta (<code>dotnet dev-certs https --trust</code>).</li>
+                    <li>Mantenha o Docker Compose como referência oficial.</li>
+                </ul>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>DataFlow</h3>
+                    <p>Plataforma de Ingestão e Processamento de Dados</p>
+                </div>
+                <div class="footer-links">
+                    <a href="../index.html#home">Início</a>
+                    <a href="../index.html#arquitetura">Arquitetura</a>
+                    <a href="../index.html#operacoes">Operações</a>
+                    <a href="../index.html#tutoriais">Tutoriais</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 DataFlow - Portal de Documentação. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

@@ -421,3 +421,23 @@ FodyWeavers.xsd
 files/large-test-data.csv
 files/*.csv
 !files/sample-data.csv
+
+# Certificados SSL (gerados localmente)
+certs/
+!certs/.gitkeep
+
+# Docker Hub - Credenciais, tokens e configurações locais
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
+*.dockerconfig
+.dockerignore.local
+.dockerhub-token
+dockerhub-credentials.json
+.docker/config.json
+
+# Docker - Logs e cache
+*.log.docker
+
+# Scripts Docker (scripts locais de build/push)
+scripts/docker/

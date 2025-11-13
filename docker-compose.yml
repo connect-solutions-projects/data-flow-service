@@ -2,7 +2,8 @@ name: data-flow
 
 networks:
   dev_net:
-    external: true   # rede já criada pelo InfraDock
+    name: dev_net
+    external: true   # rede criada pelo docker-compose.infrastructure.yml
 
 services:
   proxy:

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalação Docker - DataFlow</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="docs-page">
+    <header class="header">
+        <nav class="nav container">
+            <div class="header-brand">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-project-diagram"></i>
+                    DataFlow
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Início</a></li>
+                <li><a href="../index.html#arquitetura">Arquitetura</a></li>
+                <li><a href="../index.html#operacoes">Operações</a></li>
+                <li><a href="../index.html#tutoriais">Tutoriais</a></li>
+                <li><a href="../index.html#links">Links</a></li>
+            </ul>
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="content-page">
+            <h1>Guia de Instalação do Docker e Docker Compose</h1>
+            
+            <p>Este guia explica como instalar o Docker e Docker Compose no Windows, Linux e macOS, e como executar os arquivos docker-compose do projeto DataFlow.</p>
+
+            <h2>Índice</h2>
+            <ul>
+                <li><a href="#windows">Instalação no Windows</a></li>
+                <li><a href="#linux">Instalação no Linux</a></li>
+                <li><a href="#macos">Instalação no macOS</a></li>
+                <li><a href="#verificacao">Verificação da Instalação</a></li>
+                <li><a href="#executando">Executando Docker Compose</a></li>
+                <li><a href="#comandos">Comandos Úteis</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+
+            <h2 id="windows">🪟 Instalação no Windows</h2>
+
+            <h3>Opção 1: Docker Desktop (Recomendado)</h3>
+
+            <ol>
+                <li><strong>Baixar Docker Desktop:</strong>
+                    <ul>
+                        <li>Acesse: <a href="https://www.docker.com/products/docker-desktop/" target="_blank">https://www.docker.com/products/docker-desktop/</a></li>
+                        <li>Clique em "Download for Windows"</li>
+                        <li>Baixe o instalador <code>Docker Desktop Installer.exe</code></li>
+                    </ul>
+                </li>
+                <li><strong>Instalar:</strong>
+                    <ul>
+                        <li>Execute o instalador</li>
+                        <li>Marque a opção "Use WSL 2 instead of Hyper-V" (recomendado)</li>
+                        <li>Siga o assistente de instalação</li>
+                        <li>Reinicie o computador quando solicitado</li>
+                    </ul>
+                </li>
+                <li><strong>Iniciar Docker Desktop:</strong>
+                    <ul>
+                        <li>Após reiniciar, inicie o Docker Desktop pelo menu Iniciar</li>
+                        <li>Aguarde a inicialização (ícone da baleia na bandeja do sistema)</li>
+                        <li>Na primeira execução, aceite os termos de serviço</li>
+                    </ul>
+                </li>
+                <li><strong>Verificar instalação:</strong>
+                    <pre><code>docker --version
+docker compose version</code></pre>
+                </li>
+            </ol>
+
+            <h3>Opção 2: WSL 2 + Docker Engine (Avançado)</h3>
+
+            <p>Se você já usa WSL 2, pode instalar o Docker Engine diretamente no Linux:</p>
+
+            <pre><code># Dentro do WSL 2
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER</code></pre>
+
+            <h2 id="linux">🐧 Instalação no Linux</h2>
+
+            <h3>Ubuntu/Debian</h3>
+
+            <ol>
+                <li><strong>Atualizar pacotes:</strong>
+                    <pre><code>sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg lsb-release</code></pre>
+                </li>
+                <li><strong>Adicionar chave GPG oficial do Docker:</strong>
+                    <pre><code>sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg</code></pre>
+                </li>
+                <li><strong>Configurar repositório:</strong>
+                    <pre><code>echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null</code></pre>
+                </li>
+                <li><strong>Instalar Docker Engine e Docker Compose:</strong>
+                    <pre><code>sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin</code></pre>
+                </li>
+                <li><strong>Adicionar usuário ao grupo docker:</strong>
+                    <pre><code>sudo usermod -aG docker $USER</code></pre>
+                    <p><strong>Importante:</strong> Faça logout e login novamente para aplicar as mudanças.</p>
+                </li>
+            </ol>
+
+            <h2 id="macos">🍎 Instalação no macOS</h2>
+
+            <h3>Opção 1: Docker Desktop (Recomendado)</h3>
+
+            <ol>
+                <li><strong>Baixar Docker Desktop:</strong>
+                    <ul>
+                        <li>Acesse: <a href="https://www.docker.com/products/docker-desktop/" target="_blank">https://www.docker.com/products/docker-desktop/</a></li>
+                        <li>Clique em "Download for Mac"</li>
+                        <li>Escolha a versão para Intel ou Apple Silicon (M1/M2)</li>
+                    </ul>
+                </li>
+                <li><strong>Instalar:</strong>
+                    <ul>
+                        <li>Abra o arquivo <code>.dmg</code> baixado</li>
+                        <li>Arraste o Docker para a pasta Applications</li>
+                        <li>Abra o Docker Desktop da pasta Applications</li>
+                        <li>Siga o assistente de configuração</li>
+                    </ul>
+                </li>
+                <li><strong>Verificar instalação:</strong>
+                    <pre><code>docker --version
+docker compose version</code></pre>
+                </li>
+            </ol>
+
+            <h2 id="verificacao">Verificação da Instalação</h2>
+
+            <p>Após instalar, verifique se tudo está funcionando:</p>
+
+            <h3>1. Verificar versões</h3>
+            <pre><code>docker --version
+# Deve mostrar algo como: Docker version 24.0.0, build abc123
+
+docker compose version
+# Deve mostrar algo como: Docker Compose version v2.20.0</code></pre>
+
+            <h3>2. Testar Docker</h3>
+            <pre><code>docker run hello-world</code></pre>
+            <p>Se funcionar, você verá uma mensagem de sucesso do Docker.</p>
+
+            <h2 id="executando">Executando Docker Compose</h2>
+
+            <h3>Pré-requisitos</h3>
+
+            <ol>
+                <li><strong>Navegar para o diretório do projeto:</strong>
+                    <pre><code>cd C:\Users\rodrigo\Documents\Projetos\ConnectSolutions\Github\data-flow-service</code></pre>
+                </li>
+                <li><strong>Criar a rede Docker (se necessário):</strong>
+                    <pre><code>docker network create dev_net</code></pre>
+                </li>
+            </ol>
+
+            <h3>Passo 1: Subir a Infraestrutura</h3>
+
+            <p>Execute o arquivo de infraestrutura primeiro:</p>
+
+            <pre><code>docker compose -f docker-compose.infrastructure.yml --profile infra up -d</code></pre>
+
+            <p>Isso criará: PostgreSQL, Redis, RabbitMQ, Prometheus, Grafana e Exporters.</p>
+
+            <h3>Passo 2: Subir as Aplicações</h3>
+
+            <p>Depois que a infraestrutura estiver rodando, suba as aplicações:</p>
+
+            <pre><code>docker compose --profile proxy --profile api --profile worker --profile reporting up -d</code></pre>
+
+            <p>Isso criará: DataFlow API, Worker, Reporting Service e Nginx Proxy.</p>
+
+            <h2 id="comandos">Comandos Úteis</h2>
+
+            <h3>Ver Status dos Containers</h3>
+            <pre><code>docker compose ps</code></pre>
+
+            <h3>Ver Logs</h3>
+            <pre><code>docker compose logs -f</code></pre>
+
+            <h3>Parar Serviços</h3>
+            <pre><code>docker compose down</code></pre>
+
+            <h2 id="troubleshooting">Troubleshooting</h2>
+
+            <h3>Erro: "docker: command not found"</h3>
+            <p><strong>Solução:</strong> Verifique se o Docker está instalado e no PATH.</p>
+
+            <h3>Erro: "Cannot connect to the Docker daemon"</h3>
+            <p><strong>Solução:</strong> Inicie o Docker Desktop (Windows/macOS) ou execute <code>sudo systemctl start docker</code> (Linux).</p>
+
+            <h3>Erro: "permission denied"</h3>
+            <p><strong>Solução (Linux):</strong> Adicione seu usuário ao grupo docker:</p>
+            <pre><code>sudo usermod -aG docker $USER
+# Faça logout e login novamente</code></pre>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>DataFlow</h3>
+                    <p>Plataforma de Ingestão e Processamento de Dados</p>
+                </div>
+                <div class="footer-links">
+                    <a href="../index.html#home">Início</a>
+                    <a href="../index.html#arquitetura">Arquitetura</a>
+                    <a href="../index.html#operacoes">Operações</a>
+                    <a href="../index.html#tutoriais">Tutoriais</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 DataFlow - Portal de Documentação. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>
+
