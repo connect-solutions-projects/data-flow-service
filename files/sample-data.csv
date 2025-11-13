@@ -1,0 +1,5 @@
+clientId,fileType,amount,description
+cliente-a,csv,1200.50,Pedido 1001
+cliente-a,csv,320.00,Pedido 1002
+cliente-b,csv,150.75,Pedido 2001
+cliente-b,csv,999.99,Pedido 2002

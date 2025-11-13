@@ -1,0 +1,15 @@
+/* Esconde a seção de Schemas no Swagger UI */
+.swagger-ui .models {
+    display: none !important;
+}
+
+/* Esconde o título "Schemas" se existir */
+.swagger-ui .models-control {
+    display: none !important;
+}
+
+/* Esconde qualquer elemento relacionado a schemas */
+.swagger-ui section.models {
+    display: none !important;
+}
+

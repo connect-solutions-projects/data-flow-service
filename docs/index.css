@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>DataFlow — Documentação</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-alt: #020617;
+      --card: #0b1220;
+      --card-alt: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.1);
+      --border-subtle: rgba(148, 163, 184, 0.3);
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --radius-lg: 14px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+      min-height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Topbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.9));
+      border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .topbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 30%, #38bdf8, #1d4ed8 55%, #020617 100%);
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .brand-text-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .brand-text-sub {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .top-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      justify-content: flex-end;
+    }
+
+    .top-link {
+      border-radius: var(--radius-pill);
+      padding: 0.25rem 0.9rem;
+      font-size: 0.78rem;
+      text-decoration: none;
+      color: var(--text-soft);
+      border: 1px solid transparent;
+      transition: all 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .top-link span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
+    }
+
+    .top-link:hover {
+      border-color: rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+    }
+
+    /* Layout principal */
+    .layout {
+      max-width: 1200px;
+      margin: 1.75rem auto 2.5rem;
+      padding: 0 1.5rem 1.5rem;
+      display: grid;
+      grid-template-columns: minmax(0, 260px) minmax(0, 1.7fr);
+      gap: 1.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 4.5rem;
+      align-self: flex-start;
+      background: radial-gradient(circle at top, #020617, #020617 40%, #000 100%);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 1.2rem 1.2rem 1.4rem;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .sidebar-title {
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      margin-bottom: 0.8rem;
+    }
+
+    .sidebar-section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #6b7280;
+      margin: 1.1rem 0 0.35rem;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.33rem 0.55rem;
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text-soft);
+      font-size: 0.85rem;
+      border: 1px solid transparent;
+      transition: all 0.18s ease;
+    }
+
+    .nav-link::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      border: 2px solid rgba(148, 163, 184, 0.6);
+      box-shadow: 0 0 0 0 transparent;
+      transition: all 0.18s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
+      border-color: rgba(56, 189, 248, 0.25);
+      background: radial-gradient(circle at left, rgba(56, 189, 248, 0.08), transparent 60%);
+    }
+
+    .nav-link:hover::before {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+    }
+
+    .nav-link small {
+      font-size: 0.72rem;
+      opacity: 0.7;
+    }
+
+    .sidebar-footer {
+      margin-top: 1.2rem;
+      padding-top: 0.8rem;
+      border-top: 1px dashed rgba(148, 163, 184, 0.4);
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    /* Conteúdo */
+    main {
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 50%),
+                  radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), #020617);
+      padding: 1.6rem 1.8rem 1.8rem;
+      box-shadow: var(--shadow-soft);
+    }
+
+    @media (max-width: 600px) {
+      main {
+        padding: 1.1rem 1.1rem 1.3rem;
+      }
+    }
+
+    .hero {
+      margin-bottom: 1.7rem;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr);
+      gap: 1.3rem;
+      align-items: center;
+    }
+
+    @media (max-width: 800px) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .hero h1 {
+      font-size: 1.65rem;
+      margin: 0 0 0.55rem;
+      letter-spacing: 0.03em;
+    }
+
+    .hero p {
+      margin: 0.2rem 0;
+      color: #d1d5db;
+      font-size: 0.95rem;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #e5e7eb;
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    .badge.badge-accent {
+      border-color: rgba(56, 189, 248, 0.8);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.3), rgba(37, 99, 235, 0.8));
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.7);
+    }
+
+    .hero-card {
+      border-radius: 18px;
+      padding: 0.8rem 0.9rem;
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.98));
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 0.8rem;
+    }
+
+    .hero-card-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-soft);
+      margin-bottom: 0.4rem;
+    }
+
+    .hero-card ul {
+      margin: 0.1rem 0 0;
+      padding-left: 1rem;
+      color: #e5e7eb;
+    }
+
+    /* Sections */
+    section {
+      margin: 1.2rem 0 0.3rem;
+      padding: 0.8rem 0 0.3rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    section h2 {
+      font-size: 1.05rem;
+      margin: 0 0 0.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    section h2 span.kicker {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      padding: 0.1rem 0.65rem;
+      border-radius: var(--radius-pill);
+      background: rgba(56, 189, 248, 0.16);
+      border: 1px solid rgba(56, 189, 248, 0.65);
+    }
+
+    p {
+      margin: 0.2rem 0 0.6rem;
+      font-size: 0.9rem;
+      color: #e5e7eb;
+    }
+
+    .muted {
+      color: var(--text-soft);
+    }
+
+    ul {
+      margin: 0.25rem 0 0.7rem 1.1rem;
+      padding-left: 0;
+      font-size: 0.9rem;
+    }
+
+    li {
+      margin-bottom: 0.25rem;
+    }
+
+    code {
+      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.84rem;
+      padding: 0.08rem 0.35rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #e5e7eb;
+    }
+
+    pre {
+      background: #020617;
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      overflow-x: auto;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 0.82rem;
+    }
+
+    pre code {
+      border: none;
+      background: transparent;
+      padding: 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 800px) {
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
+      border-radius: 14px;
+      padding: 0.8rem 0.95rem;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
+    }
+
+    .card h3 {
+      margin: 0 0 0.4rem;
+      font-size: 0.98rem;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0.3rem 0 0.1rem;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 0.12rem 0.6rem;
+      font-size: 0.78rem;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-soft);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .hint {
+      margin-top: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      border-left: 2px solid rgba(148, 163, 184, 0.8);
+      padding-left: 0.55rem;
+    }
+
+    .callout {
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), rgba(15, 23, 42, 0.96));
+      padding: 0.75rem 0.9rem;
+      margin-top: 0.5rem;
+      font-size: 0.86rem;
+    }
+
+    .callout strong {
+      color: #38bdf8;
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: 0 auto 1.2rem;
+      padding: 0 1.5rem;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      border-top: 1px solid rgba(15, 23, 42, 0.9);
+      padding-top: 0.9rem;
+    }
+
+    @media (max-width: 700px) {
+      footer {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-logo">DF</div>
+        <div>
+          <div class="brand-text-title">DataFlow</div>
+          <div class="brand-text-sub">Ingestão assíncrona • .NET 9 • Docker</div>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="Atalhos">
+        <a href="#quick-start" class="top-link">
+          <span class="dot"></span>
+          Quick start
+        </a>
+        <a href="#architecture" class="top-link">Arquitetura</a>
+        <a href="#operations" class="top-link">Operações</a>
+        <a href="#endpoints" class="top-link">Endpoints</a>
+        <a href="#templates" class="top-link">Relatórios</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Navegação da documentação">
+      <div class="sidebar-title">Mapa do site</div>
+
+      <div class="sidebar-section-title">Fundamentos</div>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#overview"><span></span> Visão geral</a></li>
+        <li><a class="nav-link" href="#quick-start"><span></span> Comece por aqui</a></li>
+      </ul>
+
+      <div class="sidebar-section-title">Arquitetura</div>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#architecture"><span></span> Arquitetura técnica</a></li>
+        <li><a class="nav-link" href="#decisions"><span></span> Decisões técnicas</a></li>
+      </ul>
+
+      <div class="sidebar-section-title">Operação</div>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#operations"><span></span> Instalação & stack</a></li>
+        <li><a class="nav-link" href="#outside-docker"><span></span> Rodar fora do Docker</a></li>
+        <li><a class="nav-link" href="#scripts"><span></span> Scripts úteis</a></li>
+        <li><a class="nav-link" href="#openssl"><span></span> OpenSSL no PATH</a></li>
+      </ul>
+
+      <div class="sidebar-section-title">Uso diário</div>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#endpoints"><span></span> Endpoints principais</a></li>
+        <li><a class="nav-link" href="#reporting"><span></span> Reporting Service</a></li>
+        <li><a class="nav-link" href="#templates"><span></span> Modelo de relatório</a></li>
+      </ul>
+
+      <div class="sidebar-footer">
+        Documentação consolidada em uma única página HTML para leitura, envio por e-mail ou publicação interna.
+      </div>
+    </aside>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero" id="overview">
+        <div>
+          <h1>DataFlow — Documentação unificada</h1>
+          <p>
+            Plataforma de ingestão assíncrona para arquivos grandes, com foco em simplicidade operacional, observabilidade e relatórios automatizados.
+          </p>
+          <div class="hero-badges">
+            <span class="badge badge-accent">Monorepo .NET 9</span>
+            <span class="badge">Docker Compose</span>
+            <span class="badge">RabbitMQ • Redis • Postgres</span>
+            <span class="badge">Prometheus • Grafana • OTel</span>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-title">Em alto nível, o que é o DataFlow?</div>
+          <ul>
+            <li>Uma API para receber uploads de arquivos e registrar jobs de ingestão.</li>
+            <li>Workers em background que processam os arquivos via fila (RabbitMQ).</li>
+            <li>Um serviço de relatórios que consolida métricas em documentos prontos.</li>
+            <li>Uma stack completa de observabilidade com Prometheus e Grafana.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- QUICK START -->
+      <section id="quick-start">
+        <h2>
+          <span class="kicker">Onboarding</span>
+          Comece por aqui
+        </h2>
+        <p class="muted">
+          Se você acabou de clonar o repositório e quer ver o sistema rodando, siga esta ordem de leitura/execução.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>1. Preparar ambiente</h3>
+            <ul>
+              <li>Instale Docker Desktop com Docker Compose v2.</li>
+              <li>Em Windows, tenha PowerShell disponível.</li>
+              <li>Opcional: .NET 9 SDK para rodar serviços fora do Docker.</li>
+            </ul>
+            <div class="hint">
+              Detalhes em <code>manual-instalacao-implantacao-testes.md</code>.
+            </div>
+          </div>
+          <div class="card">
+            <h3>2. Entender a documentação</h3>
+            <p>
+              A documentação está organizada em três grandes áreas:
+            </p>
+            <ul>
+              <li><code>architecture/</code> — visão técnica e decisões de arquitetura.</li>
+              <li><code>operations/</code> — instalação, testes e tutoriais.</li>
+              <li><code>templates/</code> — modelos de relatório e outros artefatos.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>3. Subir o stack Docker</h3>
+            <p>Passos resumidos:</p>
+            <ol>
+              <li>Gerar certificados de desenvolvimento.</li>
+              <li>Configurar hostnames <code>api.local</code> e <code>reporting.local</code> no <code>hosts</code>.</li>
+              <li>Criar a rede <code>docker-network</code> se ainda não existir.</li>
+              <li>Subir dependências (Postgres, Redis, RabbitMQ, OTel, Prometheus, Grafana).</li>
+              <li>Subir API, Worker, Reporting e proxy.</li>
+            </ol>
+            <div class="hint">
+              Todos os comandos de exemplo estão no manual de instalação.
+            </div>
+          </div>
+          <div class="card">
+            <h3>4. Executar um fluxo completo</h3>
+            <ul>
+              <li>Usar o script de ingestão para gerar parâmetros (checksum, etc.).</li>
+              <li>Chamar <code>POST /ingestion/jobs</code> com um CSV de exemplo.</li>
+              <li>Acompanhar o job e checar métricas em Prometheus/Grafana.</li>
+              <li>Gerar o relatório final pelo <code>ReportingService</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ARQUITETURA -->
+      <section id="architecture">
+        <h2>
+          <span class="kicker">Arquitetura</span>
+          Visão técnica do DataFlow
+        </h2>
+        <p>
+          O DataFlow é organizado em um monorepo .NET 9 com três serviços principais (API, Worker e Reporting), além de bibliotecas compartilhadas de domínio, aplicação, infraestrutura, observabilidade e contratos.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Serviços principais</h3>
+            <ul>
+              <li><strong>DataFlow.Api</strong> — recebe uploads, valida, registra jobs e publica mensagens na fila.</li>
+              <li><strong>DataFlow.Worker</strong> — consome mensagens do RabbitMQ, processa arquivos e atualiza o estado dos jobs.</li>
+              <li><strong>DataFlow.ReportingService</strong> — consulta métricas no Prometheus e gera relatórios (Markdown) com links/insights.</li>
+              <li><strong>Proxy Nginx</strong> — termina TLS e expõe as rotas externas (<code>/swagger</code>, <code>/reporting</code>).</li>
+            </ul>
+            <div class="pill-list">
+              <span class="pill">ASP.NET Core Minimal API</span>
+              <span class="pill">MassTransit</span>
+              <span class="pill">PostgreSQL + EF Core</span>
+              <span class="pill">RabbitMQ • Redis</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Stack de observabilidade</h3>
+            <ul>
+              <li><strong>OpenTelemetry Collector</strong> — recebe traces, logs e métricas dos serviços.</li>
+              <li><strong>Prometheus</strong> — armazena séries temporais e permite consultas com PromQL.</li>
+              <li><strong>Grafana</strong> + Image Renderer — dashboards e exportação de imagens para relatórios.</li>
+            </ul>
+            <p class="hint">
+              A comunicação entre serviços no Docker é feita por hostnames internos padronizados, como
+              <code>docker-rabbitmq</code>, <code>docker-redis</code>, <code>docker-prometheus</code>.
+            </p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 0.8rem;">
+          <h3>Fluxo de ingestão resumido</h3>
+          <ol>
+            <li>Cliente envia um arquivo CSV em <code>POST /ingestion/jobs</code> com metadados (clientId, fileType, checksum).</li>
+            <li>A API faz validações rápidas (rate limiting, deduplicação por checksum, registro do job).</li>
+            <li>Uma mensagem é publicada no RabbitMQ para processamento assíncrono.</li>
+            <li>O Worker consome a mensagem, processa o arquivo e atualiza o status do job no banco.</li>
+            <li>Métricas são expostas via OpenTelemetry → Prometheus → Grafana.</li>
+            <li>O ReportingService consolida tudo em relatórios finais de saúde/performance.</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- DECISÕES TÉCNICAS -->
+      <section id="decisions">
+        <h2>
+          <span class="kicker">Design</span>
+          Decisões técnicas de arquitetura
+        </h2>
+        <p>
+          Algumas decisões foram documentadas explicitamente para deixar claro o porquê de cada componente da arquitetura.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Monorepo .NET 9</h3>
+            <ul>
+              <li>Todos os serviços compartilham domínios, contratos e utilitários.</li>
+              <li>Facilita refatorações coordenadas e builds/testes integrados.</li>
+              <li>Reduz overhead de versionamento de múltiplos repositórios em um cenário de demonstração técnica.</li>
+            </ul>
+            <p class="hint">
+              A organização do código separa claramente camadas de domínio, aplicação, infraestrutura, observabilidade e compartilhados.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Processamento assíncrono</h3>
+            <ul>
+              <li>A API responde rápido, delegando o trabalho pesado para Workers via fila.</li>
+              <li>RabbitMQ cuida de ACKs, reentregas e escalabilidade horizontal de consumidores.</li>
+              <li>Redis entra como apoio em coordenação, deduplicação e cache leve.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>Serviço de relatórios:</strong><br />
+          foi criado para consolidar métricas em Markdown, usando consultas padrão em Prometheus
+          e links de dashboards Grafana — permitindo um “botão de relatório final” ao fim dos testes.
+        </div>
+      </section>
+
+      <!-- OPERAÇÕES & INSTALAÇÃO -->
+      <section id="operations">
+        <h2>
+          <span class="kicker">Operações</span>
+          Instalação, implantação e testes
+        </h2>
+        <p>
+          O fluxo oficial de operação assume Docker Compose como forma principal de subir o ambiente.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Passos principais de instalação</h3>
+            <ol>
+              <li>Clonar o repositório e abrir o PowerShell na raiz.</li>
+              <li>Gerar certificados autoassinados para <code>api.local</code> e <code>reporting.local</code>.</li>
+              <li>Registrar os hostnames no arquivo <code>hosts</code> do Windows.</li>
+              <li>Criar (se necessário) a rede Docker <code>docker-network</code>.</li>
+            </ol>
+            <p class="hint">
+              O manual traz comandos prontos para cada etapa, incluindo verificação dos contêineres com
+              <code>docker ps</code>.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Subir o stack completo</h3>
+            <p>O processo é dividido em duas chamadas principais:</p>
+            <ul>
+              <li>Subir dependências e observabilidade: Postgres, Redis, RabbitMQ, OTel, Prometheus, Grafana & renderer.</li>
+              <li>Subir aplicações e proxy: API, Worker, Reporting e Nginx.</li>
+            </ul>
+            <p class="hint">
+              Ao final, você deve conseguir acessar:
+              <br />Grafana em <code>http://localhost:3000</code>,
+              Prometheus em <code>http://localhost:9090</code>,
+              e os health checks de API/Reporting via proxy HTTPS.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Fluxo de testes recomendado</h3>
+          <ul>
+            <li>Gerar parâmetros do arquivo de teste (<code>files/sample-data.csv</code>) com o batch de ingestão.</li>
+            <li>Criar um job via <code>POST /ingestion/jobs</code> usando os parâmetros calculados.</li>
+            <li>Acompanhar o status do job com <code>GET /ingestion/jobs/{id}</code>.</li>
+            <li>Monitorar métricas na janela de 5–15 minutos em Prometheus/Grafana.</li>
+            <li>Gerar o relatório final via endpoint do ReportingService, salvando o Markdown resultante.</li>
+          </ul>
+          <p class="hint">
+            O manual também traz critérios de aceite (como latência p95 ≤ 500ms e erros 5xx &lt; 1%) e uma seção de troubleshooting.
+          </p>
+        </div>
+      </section>
+
+      <!-- RODAR FORA DO DOCKER -->
+      <section id="outside-docker">
+        <h2>
+          <span class="kicker">Modo avançado</span>
+          Execução fora do Docker
+        </h2>
+        <p>
+          É possível executar a API, o Worker e o Reporting diretamente na máquina de desenvolvimento, desde que todas as dependências sejam provisionadas manualmente.
+        </p>
+        <div class="card">
+          <h3>Checklist para modo manual</h3>
+          <ul>
+            <li>.NET 9 SDK instalado.</li>
+            <li>PostgreSQL, Redis e RabbitMQ instalados e rodando localmente.</li>
+            <li>Variáveis de ambiente apontando para os hosts/portas corretos (conexão Postgres, Redis e RabbitMQ).</li>
+            <li>Migrations aplicadas no banco, usando <code>dotnet ef database update</code>.</li>
+          </ul>
+          <p class="hint">
+            Mesmo rodando os serviços localmente, você pode manter a observabilidade em Docker — apontando API/Worker/Reporting para Prometheus e Grafana do Compose.
+          </p>
+        </div>
+      </section>
+
+      <!-- SCRIPTS -->
+      <section id="scripts">
+        <h2>
+          <span class="kicker">Utilitários</span>
+          Scripts disponíveis
+        </h2>
+        <p>
+          Os scripts estão agrupados por finalidade e ajudam a padronizar tarefas recorrentes.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Certificados</h3>
+            <p><code>scripts/certs/</code></p>
+            <ul>
+              <li><strong>generate-dev-certs.ps1 / .cmd</strong> — gera certificados autoassinados para os domínios de desenvolvimento.</li>
+            </ul>
+
+            <h3 style="margin-top: 0.6rem;">Diagramas</h3>
+            <p><code>scripts/diagrams/</code></p>
+            <ul>
+              <li><strong>render_mermaid_diagram</strong> — converte o diagrama Mermaid de arquitetura em PNG/SVG via <code>mermaid-cli</code>.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Ingestão</h3>
+            <p><code>scripts/ingestion/</code></p>
+            <ul>
+              <li><strong>gera-parametros.bat</strong> — recebe o caminho do arquivo (e opcionalmente o clientId) e imprime:
+                checksum (SHA-256), fileName, fileSize, contentType e fileType sugerido.</li>
+            </ul>
+            <p class="hint">
+              Use a saída desse script diretamente no <code>POST /ingestion/jobs</code> para evitar erros de digitação.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- OPENSSL PATH -->
+      <section id="openssl">
+        <h2>
+          <span class="kicker">Ambiente</span>
+          OpenSSL no PATH do PowerShell
+        </h2>
+        <p>
+          Alguns scripts de certificados dependem do OpenSSL. Em Windows, ele normalmente vem junto com o Git for Windows.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Local típico do OpenSSL</h3>
+            <p class="muted">
+              Se o Git estiver em <code>C:\Program Files\Git</code>, o executável costuma ficar em:
+            </p>
+            <pre><code>C:\Program Files\Git\usr\bin\openssl.exe</code></pre>
+          </div>
+          <div class="card">
+            <h3>Adicionar ao PATH</h3>
+            <ul>
+              <li><strong>Temporário</strong>: alterar a variável PATH apenas na sessão atual do PowerShell.</li>
+              <li><strong>Permanente</strong>: adicionar o caminho via interface gráfica de variáveis de ambiente ou usando um comando de PowerShell em modo Administrador.</li>
+            </ul>
+            <p class="hint">
+              Depois de ajustar o PATH, rode <code>openssl version</code> para confirmar se o comando está disponível.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ENDPOINTS -->
+      <section id="endpoints">
+        <h2>
+          <span class="kicker">API</span>
+          Endpoints principais e fluxo de uso
+        </h2>
+        <p>
+          A API expõe endpoints para ingestão de arquivos, consulta e reprocessamento de jobs, além de endpoints auxiliares de diagnóstico.
+        </p>
+
+        <div class="card">
+          <h3>Configuração de hostnames</h3>
+          <p>
+            Para usar o proxy Nginx padrão, adicione ao arquivo <code>hosts</code>:
+          </p>
+          <pre><code>127.0.0.1 api.local
+127.0.0.1 reporting.local</code></pre>
+          <p class="hint">
+            Se preferir não mexer no <code>hosts</code>, você pode adaptar o <code>docker-compose.yml</code> e a config do Nginx para usar <code>localhost</code> diretamente.
+          </p>
+        </div>
+
+        <div class="grid-2" style="margin-top: 0.8rem;">
+          <div class="card">
+            <h3>API de ingestão (DataFlow.Api)</h3>
+            <ul>
+              <li><strong>Health check</strong>: <code>GET /health</code></li>
+              <li>
+                <strong>Criar job</strong>: <code>POST /ingestion/jobs</code><br />
+                <em>multipart/form-data</em> com:
+                <ul>
+                  <li><code>file</code> — arquivo CSV</li>
+                  <li><code>clientId</code> — identificador do cliente</li>
+                  <li><code>fileType=csv</code></li>
+                  <li><code>checksum</code> — SHA-256 do arquivo</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Consultar job</strong>: <code>GET /ingestion/jobs/{id}</code><br />
+                Retorna o status atual, com cache leve em Redis.
+              </li>
+              <li>
+                <strong>Diagnóstico de storage</strong>: <code>GET /storage/uploads</code> lista arquivos presentes.
+              </li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Reporting Service</h3>
+            <ul>
+              <li><strong>Health check</strong>: <code>GET /health</code></li>
+              <li>
+                <strong>Relatório final</strong>: <code>POST /reports/final</code><br />
+                <em>JSON</em> com campos:
+                <ul>
+                  <li><code>job</code> — nome do job/serviço (padrão <code>dataflow-api</code>).</li>
+                  <li><code>window</code> — janela de análise (ex.: <code>5m</code>, <code>15m</code>).</li>
+                  <li><code>outputDir</code> — diretório de saída no container.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Relatório de exemplo</strong>: <code>GET /reports/sample</code><br />
+                Gera um relatório com dados mockados, útil para validar o pipeline de geração.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- TEMPLATES / RELATÓRIO -->
+      <section id="templates">
+        <h2>
+          <span class="kicker">Entregáveis</span>
+          Modelo de relatório final
+        </h2>
+        <p>
+          O diretório de templates traz um modelo de relatório final que pode ser preenchido manualmente ou usado como base para o documento gerado automaticamente pelo ReportingService.
+        </p>
+
+        <div class="card">
+          <h3>Estrutura sugerida do relatório</h3>
+          <ul>
+            <li><strong>Resumo executivo</strong> — objetivo do teste, escopo e principais achados.</li>
+            <li><strong>Estado do stack</strong> — serviços ativos na <code>docker-network</code>, portas expostas, datasource do Grafana apontando para o Prometheus correto.</li>
+            <li><strong>Métricas principais</strong> — taxa de requisições, latência p95, distribuição por status HTTP.</li>
+            <li><strong>Dashboards e imagens</strong> — links do Grafana com período aplicado e PNGs exportados.</li>
+            <li><strong>Operações executadas</strong> — comandos, scripts, endpoints e janela de teste.</li>
+            <li><strong>Resultados e observações</strong> — anomalias, limitações, riscos e sugestões.</li>
+            <li><strong>Próximos passos</strong> — ações recomendadas após o teste.</li>
+            <li><strong>Anexos</strong> — logs relevantes e referências.</li>
+          </ul>
+          <p class="hint">
+            O ReportingService pode automatizar grande parte dessas seções, gerando um arquivo
+            Markdown pronto para revisão.
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <div>
+      DataFlow — documentação compilada em HTML estático para visualização, envio por e-mail e publicação interna.
+    </div>
+    <div>
+      Atualize este arquivo conforme novos serviços, endpoints ou scripts forem adicionados ao projeto.
+    </div>
+  </footer>
+</body>
+</html>

@@ -416,3 +416,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Arquivos de teste grandes (gerados pelos scripts)
+files/large-test-data.csv
+files/*.csv
+!files/sample-data.csv

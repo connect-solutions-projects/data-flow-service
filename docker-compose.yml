@@ -1,0 +1,122 @@
+name: data-flow
+
+networks:
+  dev_net:
+    external: true   # rede já criada pelo InfraDock
+
+services:
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: data-flow-proxy
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "8081:8081"
+      - "8444:8444"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - data-flow-api
+      - data-flow-reporting
+    networks:
+      - dev_net
+    restart: unless-stopped
+    profiles: ["proxy"]
+
+  # ──────────────────────────────────────────────
+  # API principal (DataFlow.Api)
+  # ──────────────────────────────────────────────
+  data-flow-api:
+    container_name: api
+    pull_policy: never
+    build:
+      context: .                                # build no root do repo
+      dockerfile: src/apps/DataFlow.Api/Dockerfile
+    expose:
+      - "8080"
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      DOTNET_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
+
+      # Conexões apontando para os containers da rede dev_net
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-postgres};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-supersecret_admin}"
+      ConnectionStrings__Redis: "redis:6379"
+      Rabbit__Connection: "amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-supersecret_admin}@rabbitmq:5672/"
+
+      # (opcional) variáveis separadas
+      POSTGRES__HOST: postgres
+      POSTGRES__PORT: "5432"
+      POSTGRES__DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES__USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES__PASSWORD: "${POSTGRES_PASSWORD:-supersecret_admin}"
+      REDIS__HOST: redis
+      REDIS__PORT: "6379"
+      RABBIT__HOST: rabbitmq
+      RABBIT__PORT: "5672"
+      RABBIT__USER: "${RABBITMQ_USER:-admin}"
+      RABBIT__PASSWORD: "${RABBITMQ_PASSWORD:-supersecret_admin}"
+      RABBIT__VHOST: "/"
+      # OpenTelemetry OTLP endpoint
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+      # Variáveis usadas pelo wait-for-rabbit.sh
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: admin
+      RABBITMQ_PASSWORD: supersecret_admin
+      RABBITMQ_MGMT_PORT: "15672"
+    networks:
+      - dev_net
+    restart: unless-stopped
+    profiles: ["api"]
+
+  # ──────────────────────────────────────────────
+  # Worker de processamento (DataFlow.Worker)
+  # ──────────────────────────────────────────────
+  data-flow-worker:
+    container_name: worker
+    pull_policy: never
+    build:
+      context: .                                # também builda do root
+      dockerfile: src/apps/DataFlow.Worker/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-postgres};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-supersecret_admin}"
+      ConnectionStrings__Redis: "redis:6379"
+      Rabbit__Connection: "amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-supersecret_admin}@rabbitmq:5672/"
+      POSTGRES__HOST: postgres
+      POSTGRES__PORT: "5432"
+      POSTGRES__DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES__USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES__PASSWORD: "${POSTGRES_PASSWORD:-supersecret_admin}"
+      REDIS__HOST: redis
+      REDIS__PORT: "6379"
+      RABBIT__HOST: rabbitmq
+      RABBIT__PORT: "5672"
+      RABBIT__USER: "${RABBITMQ_USER:-admin}"
+      RABBIT__PASSWORD: "${RABBITMQ_PASSWORD:-supersecret_admin}"
+      RABBIT__VHOST: "/"
+      # OpenTelemetry OTLP endpoint
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+    networks:
+      - dev_net
+    restart: unless-stopped
+    profiles: ["worker"]
+
+  
+  # ──────────────────────────────────────────────
+  # Reporting Service (DataFlow.ReportingService)
+  # ──────────────────────────────────────────────
+  data-flow-reporting:
+    container_name: reporting
+    pull_policy: never
+    build:
+      context: .                                # builda do root
+      dockerfile: src/apps/DataFlow.ReportingService/Dockerfile
+    expose:
+      - "8080"
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+    networks:
+      - dev_net
+    restart: unless-stopped
+    profiles: ["reporting"]
