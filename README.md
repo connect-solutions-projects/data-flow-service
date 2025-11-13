@@ -7,7 +7,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql)](https://www.postgresql.org/)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.12-FF6600?logo=rabbitmq)](https://www.rabbitmq.com/)
 
-## 📋 Sobre o Projeto
+##  Sobre o Projeto
 
 DataFlow é uma solução completa para ingestão, processamento e análise de grandes volumes de dados. Projetada para lidar com arquivos de centenas de MB até alguns GB, a plataforma utiliza processamento assíncrono, observabilidade nativa e geração automática de relatórios.
 
