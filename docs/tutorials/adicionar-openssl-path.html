@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar OpenSSL ao PATH - DataFlow</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .content-page {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            max-width: 900px;
+        }
+        .content-page h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1rem;
+        }
+        .content-page h2 {
+            font-size: 2rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .content-page h3 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #333;
+        }
+        .content-page p {
+            margin-bottom: 1rem;
+            color: #666;
+            line-height: 1.8;
+        }
+        .content-page ul,
+        .content-page ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+            color: #666;
+        }
+        .content-page li {
+            margin-bottom: 0.5rem;
+        }
+        .content-page code {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content-page pre {
+            background: #0a0e1a;
+            border: 1px solid #1f2a44;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+    </style>
+</head>
+<body class="docs-page">
+    <header class="header">
+        <nav class="nav container">
+            <div class="header-brand">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-project-diagram"></i>
+                    DataFlow
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Início</a></li>
+                <li><a href="../index.html#arquitetura">Arquitetura</a></li>
+                <li><a href="../index.html#operacoes">Operações</a></li>
+                <li><a href="../index.html#tutoriais">Tutoriais</a></li>
+                <li><a href="../index.html#links">Links</a></li>
+            </ul>
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="content-page">
+                <h1>Como adicionar OpenSSL ao PATH</h1>
+                <p>Guia para habilitar o <code>openssl.exe</code> no PowerShell, evitando erros na geração de certificados.</p>
+
+                <h2>Localização do OpenSSL</h2>
+                <p>Instalações do Git for Windows geralmente incluem o executável em:</p>
+                <pre><code>C:\Program Files\Git\usr\bin\openssl.exe</code></pre>
+
+                <h2>Método 1 — Temporário (sessão atual)</h2>
+                <pre><code>$env:Path += ";C:\Program Files\Git\usr\bin"</code></pre>
+                <p>Verifique:</p>
+                <pre><code>openssl version</code></pre>
+
+                <h2>Método 2 — Permanente</h2>
+                <h3>Via interface gráfica</h3>
+                <ol>
+                    <li>Abrir <strong>sysdm.cpl</strong> → aba <em>Avançado</em>.</li>
+                    <li>Clicar em <em>Variáveis de Ambiente</em>.</li>
+                    <li>Editar a variável <strong>Path</strong> (sistema) e adicionar <code>C:\Program Files\Git\usr\bin</code>.</li>
+                    <li>Aplicar e reiniciar o PowerShell.</li>
+                </ol>
+
+                <h3>Via PowerShell (Administrador)</h3>
+                <pre><code>[Environment]::SetEnvironmentVariable(
+    "Path",
+    [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\\Program Files\\Git\\usr\\bin",
+    "Machine"
+)</code></pre>
+
+                <h3>Via PowerShell (Usuário atual)</h3>
+                <pre><code>[Environment]::SetEnvironmentVariable(
+    "Path",
+    [Environment]::GetEnvironmentVariable("Path", "User") + ";C:\\Program Files\\Git\\usr\\bin",
+    "User"
+)</code></pre>
+
+                <h2>Verificação</h2>
+                <pre><code>openssl version</code></pre>
+                <p>Saída esperada:</p>
+                <pre><code>OpenSSL 1.1.1w  11 Sep 2023</code></pre>
+
+                <h2>Alternativa</h2>
+                <p>Utilize o Git Bash (já inclui o OpenSSL no PATH). O script <code>generate-dev-certs.ps1</code> informa como proceder caso o binário não seja localizado.</p>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>DataFlow</h3>
+                    <p>Plataforma de Ingestão e Processamento de Dados</p>
+                </div>
+                <div class="footer-links">
+                    <a href="../index.html#home">Início</a>
+                    <a href="../index.html#arquitetura">Arquitetura</a>
+                    <a href="../index.html#operacoes">Operações</a>
+                    <a href="../index.html#tutoriais">Tutoriais</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 DataFlow - Portal de Documentação. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

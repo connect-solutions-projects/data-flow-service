@@ -441,3 +441,11 @@ dockerhub-credentials.json
 
 # Scripts Docker (scripts locais de build/push)
 scripts/docker/
+
+# Angular
+.angular/
+dist/
+
+# Portais (HTML estático e Angular)
+portal/
+portal-angular/

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decisões Técnicas - DataFlow</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="docs-page">
+    <header class="header">
+        <nav class="nav container">
+            <div class="header-brand">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-project-diagram"></i>
+                    DataFlow
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Início</a></li>
+                <li><a href="../index.html#arquitetura">Arquitetura</a></li>
+                <li><a href="../index.html#operacoes">Operações</a></li>
+                <li><a href="../index.html#tutoriais">Tutoriais</a></li>
+                <li><a href="../index.html#links">Links</a></li>
+            </ul>
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="content-page">
+                <h1>Decisões Técnicas — DataFlow</h1>
+                
+                <p>Este documento apresenta as principais decisões técnicas tomadas durante o desenvolvimento do DataFlow, incluindo justificativas e trade-offs.</p>
+
+                <h2>1. Monorepo</h2>
+                <p>Decisão: Organizar todos os serviços e bibliotecas em um único repositório.</p>
+                <p><strong>Justificativa:</strong> Facilita refatorações coordenadas, builds integrados, reuso de código e governança uniforme. Ideal para projetos com prazo curto e necessidade de sincronização entre componentes.</p>
+
+                <h2>2. .NET 9</h2>
+                <p>Decisão: Utilizar .NET 9 como plataforma principal.</p>
+                <p><strong>Justificativa:</strong> Versão mais recente com melhorias de performance, suporte a Minimal APIs, e recursos modernos de C# 12.</p>
+
+                <h2>3. Clean Architecture</h2>
+                <p>Decisão: Organizar o código em camadas (Domain, Application, Infrastructure).</p>
+                <p><strong>Justificativa:</strong> Separação de responsabilidades, testabilidade, independência de frameworks e facilita manutenção a longo prazo.</p>
+
+                <h2>4. CQRS com MediatR</h2>
+                <p>Decisão: Implementar padrão CQRS usando MediatR.</p>
+                <p><strong>Justificativa:</strong> Separação clara entre comandos e queries, facilita testes, reduz acoplamento e melhora a organização do código.</p>
+
+                <h2>5. RabbitMQ + MassTransit</h2>
+                <p>Decisão: Usar RabbitMQ para mensageria com MassTransit como abstração.</p>
+                <p><strong>Justificativa:</strong> Desacoplamento entre serviços, processamento assíncrono, escalabilidade e MassTransit simplifica o uso do RabbitMQ.</p>
+
+                <h2>6. PostgreSQL + EF Core</h2>
+                <p>Decisão: PostgreSQL como banco de dados principal com Entity Framework Core.</p>
+                <p><strong>Justificativa:</strong> PostgreSQL é robusto, open-source, suporta transações ACID e EF Core facilita o desenvolvimento com migrations automáticas.</p>
+
+                <h2>7. Redis</h2>
+                <p>Decisão: Utilizar Redis para cache e coordenação distribuída.</p>
+                <p><strong>Justificativa:</strong> Performance para rate limiting, deduplicação, cache de resultados e coordenação entre instâncias.</p>
+
+                <h2>8. OpenTelemetry</h2>
+                <p>Decisão: Implementar observabilidade com OpenTelemetry.</p>
+                <p><strong>Justificativa:</strong> Padrão da indústria, suporte a múltiplos backends (Prometheus, Grafana), rastreamento distribuído e métricas customizadas.</p>
+
+                <h2>9. Docker Compose</h2>
+                <p>Decisão: Containerizar toda a stack com Docker Compose.</p>
+                <p><strong>Justificativa:</strong> Facilita desenvolvimento local, reprodução de ambiente, deploy simplificado e isolamento de dependências.</p>
+
+                <h2>10. Nginx como Proxy Reverso</h2>
+                <p>Decisão: Usar Nginx para terminar TLS e rotear requisições.</p>
+                <p><strong>Justificativa:</strong> Performance, suporte a SSL/TLS, facilita configuração de múltiplos serviços e padrão da indústria.</p>
+
+                <p><em>Para mais detalhes, consulte o documento original: <code>docs/architecture/decisoes-tecnicas.md</code></em></p>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>DataFlow</h3>
+                    <p>Plataforma de Ingestão e Processamento de Dados</p>
+                </div>
+                <div class="footer-links">
+                    <a href="../index.html#home">Início</a>
+                    <a href="../index.html#arquitetura">Arquitetura</a>
+                    <a href="../index.html#operacoes">Operações</a>
+                    <a href="../index.html#tutoriais">Tutoriais</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 DataFlow - Portal de Documentação. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial Tag e Push Docker - DataFlow</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .content-page {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            max-width: 900px;
+        }
+        .content-page h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1rem;
+        }
+        .content-page h2 {
+            font-size: 2rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .content-page h3 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #333;
+        }
+        .content-page p {
+            margin-bottom: 1rem;
+            color: #666;
+            line-height: 1.8;
+        }
+        .content-page ul,
+        .content-page ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+            color: #666;
+        }
+        .content-page li {
+            margin-bottom: 0.5rem;
+        }
+        .content-page code {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content-page pre {
+            background: #0a0e1a;
+            border: 1px solid #1f2a44;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        .content-page pre code {
+            background: transparent;
+            color: #e2e8f0;
+            padding: 0;
+        }
+        .content-page a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .content-page a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="docs-page">
+    <header class="header">
+        <nav class="nav container">
+            <div class="header-brand">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-project-diagram"></i>
+                    DataFlow
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Início</a></li>
+                <li><a href="../index.html#arquitetura">Arquitetura</a></li>
+                <li><a href="../index.html#operacoes">Operações</a></li>
+                <li><a href="../index.html#tutoriais">Tutoriais</a></li>
+                <li><a href="../index.html#links">Links</a></li>
+            </ul>
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="content-page">
+                <h1>Tutorial: Tag e Push de Imagens Docker</h1>
+
+                <p>Aprenda a taguear e publicar as imagens geradas pelo <code>docker-compose</code> no Docker Hub, seja manualmente ou usando scripts.</p>
+
+                <h2>Pré-requisitos</h2>
+                <ol>
+                    <li>Conta no Docker Hub.</li>
+                    <li>Login realizado: <code>docker login -u seu-usuario</code>.</li>
+                    <li>Imagens construídas localmente via <code>docker compose</code>.</li>
+                </ol>
+
+                <h2>Verificar imagens existentes</h2>
+                <pre><code>docker images | grep data-flow</code></pre>
+                <p>Saída esperada:</p>
+                <pre><code>data-flow-data-flow-api        latest    abc123def456   2 hours ago   250MB
+data-flow-data-flow-worker     latest    def456abc123   2 hours ago   245MB
+data-flow-data-flow-reporting  latest    789ghi012jkl   2 hours ago   248MB</code></pre>
+
+                <h2>Passo 1 — Criar novas tags</h2>
+                <pre><code># API
+docker tag data-flow-data-flow-api:latest seu-usuario/data-flow-api:latest
+
+# Reporting
+docker tag data-flow-data-flow-reporting:latest seu-usuario/data-flow-reporting:latest
+
+# Worker
+docker tag data-flow-data-flow-worker:latest seu-usuario/data-flow-worker:latest</code></pre>
+
+                <h2>Passo 2 — Enviar para o Docker Hub</h2>
+                <pre><code>docker push seu-usuario/data-flow-api:latest
+docker push seu-usuario/data-flow-reporting:latest
+docker push seu-usuario/data-flow-worker:latest</code></pre>
+
+                <h2>Script completo</h2>
+                <pre><code># 1. Login
+docker login -u seu-usuario
+
+# 2. Tags
+docker tag data-flow-data-flow-api:latest seu-usuario/data-flow-api:latest
+docker tag data-flow-data-flow-reporting:latest seu-usuario/data-flow-reporting:latest
+docker tag data-flow-data-flow-worker:latest seu-usuario/data-flow-worker:latest
+
+# 3. Push
+docker push seu-usuario/data-flow-api:latest
+docker push seu-usuario/data-flow-reporting:latest
+docker push seu-usuario/data-flow-worker:latest</code></pre>
+
+                <h2>Explicando os comandos</h2>
+                <h3><code>docker tag</code></h3>
+                <p>Cria uma nova referência para a imagem sem duplicar conteúdo.</p>
+                <pre><code>docker tag IMAGEM_ORIGEM:tag IMAGEM_DESTINO:tag</code></pre>
+                <p>Exemplo:</p>
+                <pre><code>docker tag data-flow-data-flow-api:latest seu-usuario/data-flow-api:latest</code></pre>
+
+                <h3><code>docker push</code></h3>
+                <p>Publica a imagem no registry.</p>
+                <pre><code>docker push usuario/imagem:tag</code></pre>
+
+                <h2>Verificação</h2>
+                <ol>
+                    <li>Acesse <a href="https://hub.docker.com/r/seu-usuario/data-flow-api" target="_blank">dockerhub/data-flow-api</a>.</li>
+                    <li>Confirme a tag <code>latest</code>.</li>
+                    <li>Repita para reporting e worker.</li>
+                </ol>
+
+                <h2>Versões específicas</h2>
+                <pre><code># Criar tag 1.0.0
+docker tag data-flow-data-flow-api:latest seu-usuario/data-flow-api:1.0.0
+
+# Publicar
+docker push seu-usuario/data-flow-api:1.0.0</code></pre>
+
+                <h2>Troubleshooting</h2>
+                <h3>"unauthorized: authentication required"</h3>
+                <pre><code>docker login -u seu-usuario</code></pre>
+                <h3>"denied: requested access to the resource is denied"</h3>
+                <ul>
+                    <li>Confirme usuário e permissões.</li>
+                    <li>Certeza que o repositório existe? O Docker cria automaticamente no push.</li>
+                </ul>
+                <h3>"tag does not exist"</h3>
+                <pre><code>docker images | grep data-flow
+# Caso não exista, rode:
+docker compose --profile api --profile worker --profile reporting build</code></pre>
+
+                <h2>Comandos adicionais</h2>
+                <pre><code># Listar tags locais
+docker images seu-usuario/data-flow-api
+
+# Remover tag local
+docker rmi seu-usuario/data-flow-api:latest
+
+# Ver histórico
+docker history seu-usuario/data-flow-api:latest</code></pre>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>DataFlow</h3>
+                    <p>Plataforma de Ingestão e Processamento de Dados</p>
+                </div>
+                <div class="footer-links">
+                    <a href="../index.html#home">Início</a>
+                    <a href="../index.html#arquitetura">Arquitetura</a>
+                    <a href="../index.html#operacoes">Operações</a>
+                    <a href="../index.html#tutoriais">Tutoriais</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 DataFlow - Portal de Documentação. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

@@ -6,8 +6,13 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "build:deploy": "ng build --configuration production --base-href=/data-flow-service/",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
+    "deploy:git": "powershell -ExecutionPolicy Bypass -File deploy-git.ps1",
+    "deploy:simple": "ng deploy --base-href=/data-flow-service/"
   },
   "dependencies": {
     "@angular/animations": "^17.2.0",
