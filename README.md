@@ -7,21 +7,21 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql)](https://www.postgresql.org/)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.12-FF6600?logo=rabbitmq)](https://www.rabbitmq.com/)
 
-## 📋 Sobre o Projeto
+##  Sobre o Projeto
 
 DataFlow é uma solução completa para ingestão, processamento e análise de grandes volumes de dados. Projetada para lidar com arquivos de centenas de MB até alguns GB, a plataforma utiliza processamento assíncrono, observabilidade nativa e geração automática de relatórios.
 
-### ✨ Principais Características
+###  Principais Características
 
-- 🚀 **Ingestão Assíncrona**: Upload de arquivos grandes via HTTP com processamento em background
-- 📊 **Observabilidade Completa**: OpenTelemetry, Prometheus e Grafana integrados
-- 🔄 **Processamento em Fila**: RabbitMQ para desacoplamento e escalabilidade
-- 📈 **Relatórios Automáticos**: Geração de relatórios consolidados com métricas e dashboards
-- 🐳 **Containerizado**: Stack completa via Docker Compose
-- 🔒 **HTTPS**: Proxy reverso Nginx com certificados SSL
-- 📝 **Swagger/OpenAPI**: Documentação automática dos endpoints
+-  **Ingestão Assíncrona**: Upload de arquivos grandes via HTTP com processamento em background
+-  **Observabilidade Completa**: OpenTelemetry, Prometheus e Grafana integrados
+-  **Processamento em Fila**: RabbitMQ para desacoplamento e escalabilidade
+-  **Relatórios Automáticos**: Geração de relatórios consolidados com métricas e dashboards
+-  **Containerizado**: Stack completa via Docker Compose
+-  **HTTPS**: Proxy reverso Nginx com certificados SSL
+-  **Swagger/OpenAPI**: Documentação automática dos endpoints
 
-## 🏗️ Arquitetura
+##  Arquitetura
 
 ```mermaid
 %%{init: { 'theme': 'neutral' } }%%
@@ -57,7 +57,7 @@ flowchart LR
     class A,Q,W,PG,R,OC,P,G,GR,RS net;
 ```
 
-## 🛠️ Stack Tecnológica
+##  Stack Tecnológica
 
 | Componente | Tecnologia | Versão |
 |------------|-----------|--------|
@@ -70,7 +70,7 @@ flowchart LR
 | **Containerização** | Docker Compose | v2+ |
 | **Proxy Reverso** | Nginx | 1.27 |
 
-## 📦 Componentes
+##  Componentes
 
 ### Aplicações (`src/apps/`)
 
@@ -86,7 +86,7 @@ flowchart LR
 - **`DataFlow.Observability`**: Métricas customizadas e instrumentação
 - **`DataFlow.Shared`**: Contratos e mensagens compartilhadas
 
-## 🚀 Início Rápido
+##  Início Rápido
 
 ### Pré-requisitos
 
@@ -137,13 +137,13 @@ docker compose --profile proxy --profile api --profile worker --profile reportin
 - **Grafana**: http://localhost:3000
 - **Prometheus**: http://localhost:9090
 
-> ⚠️ **Nota**: Certificados são autoassinados. Aceite o aviso de segurança no navegador.
+>  **Nota**: Certificados são autoassinados. Aceite o aviso de segurança no navegador.
 
-## 📖 Documentação
+##  Documentação
 
 A documentação está organizada em `docs/`:
 
-### 📚 Guias Essenciais
+###  Guias Essenciais
 
 - **[Manual de Instalação e Testes](docs/operations/manual-instalacao-implantacao-testes.md)** - Passo a passo completo
 - **[Arquitetura Técnica](docs/architecture/dataflow-technical-architecture.md)** - Visão detalhada da arquitetura
@@ -157,7 +157,7 @@ A documentação está organizada em `docs/`:
 - **`scripts/ingestion/gera-parametros.bat`** - Calcular checksum e parâmetros para upload
 - **`scripts/ingestion/gerar-csv-grande.cmd`** - Gerar arquivo CSV grande para testes
 
-## 💡 Exemplo de Uso
+##  Exemplo de Uso
 
 ### 1. Gerar Arquivo de Teste
 
@@ -196,7 +196,7 @@ curl -k -X POST https://reporting.local:8444/reports/final \
   -d '{"job":"dataflow-api","window":"5m","outputDir":"docs"}'
 ```
 
-## 📊 Estrutura do Projeto
+##  Estrutura do Projeto
 
 ```
 data-flow/
@@ -217,7 +217,7 @@ data-flow/
 └── docker-compose.yml      # Orquestração dos serviços
 ```
 
-## 🔍 Observabilidade
+##  Observabilidade
 
 ### Métricas Disponíveis
 
@@ -241,7 +241,7 @@ histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by 
 sum by(status) (rate(http_requests_total[5m]))
 ```
 
-## 🧪 Testes
+##  Testes
 
 Consulte o [Manual de Instalação e Testes](docs/operations/manual-instalacao-implantacao-testes.md) para:
 - Testes de ingestão
@@ -249,15 +249,15 @@ Consulte o [Manual de Instalação e Testes](docs/operations/manual-instalacao-i
 - Verificação de métricas
 - Geração de relatórios
 
-## 📝 Licença
+##  Licença
 
 Este projeto foi desenvolvido como parte de um teste técnico. Consulte os termos de uso conforme aplicável.
 
-## 🤝 Contribuindo
+##  Contribuindo
 
 Pull requests são bem-vindos. Para mudanças significativas, abra uma issue primeiro para discutir o que você gostaria de mudar.
 
-## 📞 Suporte
+##  Suporte
 
 Para dúvidas ou problemas:
 1. Consulte a [documentação](docs/README.md)
