@@ -1,4 +1,5 @@
 using DataFlow.Core.Application.Services;
+using DataFlow.Core.Application.Interfaces;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +11,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IngestionOrchestrator).Assembly));
         services.AddScoped<IIngestionOrchestrator, IngestionOrchestrator>();
+        services.AddScoped<IImportBatchProcessor, ImportBatchProcessor>();
+        services.AddScoped<IPolicyEvaluator, PolicyEvaluator>();
         return services;
     }
 }

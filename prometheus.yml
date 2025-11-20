@@ -20,15 +20,17 @@ scrape_configs:
     static_configs:
       - targets: ['postgres-exporter:9187']
 
-  # DataFlow API (se expor métricas via OpenTelemetry)
+  # DataFlow API - Prometheus metrics endpoint
   - job_name: 'dataflow-api'
     static_configs:
-      - targets: ['otel-collector:4317']
+      - targets: ['api:8080']
     scrape_interval: 10s
+    metrics_path: '/metrics'
 
-  # DataFlow Worker (se expor métricas via OpenTelemetry)
+  # DataFlow Worker - Prometheus metrics endpoint
   - job_name: 'dataflow-worker'
     static_configs:
-      - targets: ['otel-collector:4317']
+      - targets: ['worker:9090']
     scrape_interval: 10s
+    metrics_path: '/metrics'
 

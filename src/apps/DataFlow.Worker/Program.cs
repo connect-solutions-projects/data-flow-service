@@ -1,6 +1,10 @@
 using DataFlow.Core.Application.DependencyInjection;
+using DataFlow.Core.Application.Options;
 using DataFlow.Core.Application.Services;
 using DataFlow.Infrastructure.DependencyInjection;
+using DataFlow.Worker.Consumers;
+using DataFlow.Worker.Options;
+using DataFlow.Worker.Services;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +14,10 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Exporter;
 using DataFlow.Observability;
-using DataFlow.Worker.Consumers;
+using StackExchange.Redis;
+using Microsoft.Extensions.Caching.Distributed;
+using OpenTelemetry.Exporter.Prometheus;
+using Microsoft.AspNetCore.Builder;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((ctx, cfg) =>
@@ -21,15 +28,37 @@ var host = Host.CreateDefaultBuilder(args)
     {
         services.AddApplication();
         services.AddInfrastructure(context.Configuration);
+        services.Configure<SensitiveDataOptions>(context.Configuration.GetSection(SensitiveDataOptions.SectionName));
+        services.Configure<DataRetentionOptions>(context.Configuration.GetSection(DataRetentionOptions.SectionName));
+        
+        // Redis para cache e locks
+        var redisConn = context.Configuration.GetValue<string>("ConnectionStrings:Redis") ?? "redis:6379";
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConn;
+        });
+        services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(redisConn));
+        
+        // Registrar worker de processamento de batches
+        services.AddHostedService<ImportBatchWorkerService>();
+        services.AddHostedService<DataRetentionHostedService>();
 
         // OpenTelemetry (traces + metrics)
         services.AddDataFlowTelemetry("dataflow-worker", context.Configuration);
+        
+        // Adicionar Prometheus exporter separadamente
+        services.AddOpenTelemetry()
+            .WithMetrics(m =>
+            {
+                m.AddPrometheusExporter();
+            });
 
         // Logging OpenTelemetry opcional removido para evitar conflitos de build
 
         services.AddMassTransit(x =>
         {
             x.AddConsumer<ProcessJobConsumer>();
+            x.AddConsumer<DataFlow.Worker.Consumers.BatchReadyConsumer>();
             x.UsingRabbitMq((ctx, cfg) =>
             {
                 var mqHost = context.Configuration.GetValue<string>("RabbitMq:Host")
@@ -77,9 +106,34 @@ var host = Host.CreateDefaultBuilder(args)
                 {
                     e.ConfigureConsumer<ProcessJobConsumer>(ctx);
                 });
+                
+                cfg.ReceiveEndpoint("batch-ready-queue", e =>
+                {
+                    e.ConfigureConsumer<DataFlow.Worker.Consumers.BatchReadyConsumer>(ctx);
+                });
             });
         });
     })
+    .UseDefaultServiceProvider(options =>
+    {
+        // Desabilitar validação de escopo no startup para permitir IServiceScopeFactory
+        options.ValidateScopes = false;
+        options.ValidateOnBuild = false;
+    })
     .Build();
+
+// Expor endpoint Prometheus para Worker usando ASP.NET Core minimal API
+var metricsBuilder = WebApplication.CreateBuilder(new string[] { });
+metricsBuilder.Services.AddOpenTelemetry()
+    .WithMetrics(m =>
+    {
+        m.AddRuntimeInstrumentation();
+        m.AddMeter("DataFlow");
+        m.AddPrometheusExporter();
+    });
+var metricsApp = metricsBuilder.Build();
+metricsApp.MapPrometheusScrapingEndpoint();
+metricsApp.Urls.Add("http://0.0.0.0:9090");
+_ = Task.Run(() => metricsApp.RunAsync());
 
 await host.RunAsync();

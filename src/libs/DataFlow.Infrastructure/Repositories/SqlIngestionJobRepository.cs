@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DataFlow.Infrastructure.Repositories;
 
-public class PostgresIngestionJobRepository : IIngestionJobRepository
+public class SqlIngestionJobRepository : IIngestionJobRepository
 {
     private readonly IngestionDbContext _db;
 
-    public PostgresIngestionJobRepository(IngestionDbContext db)
+    public SqlIngestionJobRepository(IngestionDbContext db)
     {
         _db = db;
     }
@@ -70,3 +70,4 @@ public class PostgresIngestionJobRepository : IIngestionJobRepository
             .Take(limit)
             .ToListAsync(cancellationToken);
 }
+

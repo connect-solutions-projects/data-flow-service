@@ -1,7 +1,10 @@
 using DataFlow.Core.Application.DependencyInjection;
 using DataFlow.Core.Application.DTOs;
+using DataFlow.Core.Application.Options;
 using DataFlow.Core.Application.Services;
 using DataFlow.Core.Application.Interfaces;
+using DataFlow.Core.Domain.Entities;
+using DataFlow.Core.Domain.Contracts;
 using DataFlow.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -11,6 +14,9 @@ using DataFlow.Api.Services;
 using DataFlow.Api.Services.Interfaces;
 using DataFlow.Api.Options;
 using Microsoft.Extensions.Options;
+using DataFlow.Core.Domain.Enums;
+using DataFlow.Infrastructure.Persistence;
+using DataFlow.Infrastructure.Persistence.Seed;
 using DataFlow.Observability;
 using MassTransit;
 using OpenTelemetry.Resources;
@@ -19,15 +25,23 @@ using OpenTelemetry.Trace;
 using OpenTelemetry.Exporter;
 using OpenTelemetry;
 using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Exporter.Prometheus;
 using DataFlow.Shared.Messages;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.OpenApi;
+using System.Buffers;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // DI registrations
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.Configure<ImportStorageOptions>(builder.Configuration.GetSection(ImportStorageOptions.SectionName));
+builder.Services.Configure<SensitiveDataOptions>(builder.Configuration.GetSection(SensitiveDataOptions.SectionName));
+builder.Services.AddScoped<IClientCredentialValidator, ClientCredentialValidator>();
+
+var adminApiKey = builder.Configuration.GetValue<string>("Admin:ApiKey");
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -130,6 +144,8 @@ builder.Services
     .WithMetrics(m =>
     {
         m.AddAspNetCoreInstrumentation();
+        // Prometheus exporter para endpoint /metrics
+        m.AddPrometheusExporter();
     })
     .WithTracing(t =>
     {
@@ -140,21 +156,30 @@ builder.Services
 
 var app = builder.Build();
 
+// Prometheus metrics endpoint
+app.MapPrometheusScrapingEndpoint();
+
 // Aplicar migrations opcionalmente no startup (evita EnsureCreated)
 try
 {
     using var scope = app.Services.CreateScope();
-    var svc = scope.ServiceProvider.GetService<DataFlow.Infrastructure.Persistence.IngestionDbContext>();
+    var dbContext = scope.ServiceProvider.GetService<IngestionDbContext>();
+    var seeder = scope.ServiceProvider.GetService<ClientSeeder>();
     var applyMigrations = builder.Configuration.GetValue<bool>("ApplyMigrationsOnStartup", false)
-                          || string.Equals(Environment.GetEnvironmentVariable("APPLY_MIGRATIONS_ON_STARTUP"), "true", StringComparison.OrdinalIgnoreCase);
-    if (applyMigrations && svc is not null)
+                      || string.Equals(Environment.GetEnvironmentVariable("APPLY_MIGRATIONS_ON_STARTUP"), "true", StringComparison.OrdinalIgnoreCase);
+    if (applyMigrations && dbContext is not null)
     {
-        svc.Database.Migrate();
+        await dbContext.Database.MigrateAsync();
+    }
+
+    if (seeder is not null)
+    {
+        await seeder.SeedAsync();
     }
 }
 catch
 {
-    // Se Postgres não estiver disponível, seguimos com o fallback em memória
+    // Se SQL Server não estiver disponível, seguimos com o fallback em memória
 }
 
 // Middleware
@@ -164,6 +189,9 @@ if (builder.Configuration.GetValue<bool>("EnableHttpsRedirection", true))
 {
     app.UseHttpsRedirection();
 }
+
+// Rate limiting por cliente
+app.UseMiddleware<DataFlow.Api.Middleware.ClientRateLimitMiddleware>();
 
 if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Swagger:Enabled", true))
 {
@@ -189,6 +217,193 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }))
        op.Responses["200"] = new OpenApiResponse { Description = "Serviço operacional." };
        return op;
    });
+
+app.MapPost("/imports", async (
+    HttpRequest request,
+    IClientCredentialValidator credentialValidator,
+    IngestionDbContext dbContext,
+    IOptions<ImportStorageOptions> storageOptions,
+    DataFlow.Core.Application.Services.IPolicyEvaluator policyEvaluator,
+    IPublishEndpoint publishEndpoint,
+    CancellationToken cancellationToken) =>
+{
+    var client = await credentialValidator.ValidateAsync(request, cancellationToken);
+    if (client is null)
+        return Results.Unauthorized();
+
+    if (!request.HasFormContentType)
+        return Results.BadRequest("Envie multipart/form-data contendo o arquivo e metadados.");
+
+    var form = await request.ReadFormAsync(cancellationToken);
+    var file = form.Files.GetFile("file");
+    if (file is null || file.Length == 0)
+        return Results.BadRequest("Arquivo obrigatório (campo 'file').");
+
+    var fileNameInput = form["fileName"].ToString();
+    var safeFileName = Path.GetFileName(string.IsNullOrWhiteSpace(fileNameInput) ? file.FileName : fileNameInput);
+    var contentType = string.IsNullOrWhiteSpace(form["contentType"]) ? file.ContentType : form["contentType"].ToString();
+    var originDefault = string.IsNullOrWhiteSpace(form["originDefault"]) ? null : form["originDefault"].ToString();
+    var requestedBy = string.IsNullOrWhiteSpace(form["requestedBy"]) ? null : form["requestedBy"].ToString();
+    var metadata = string.IsNullOrWhiteSpace(form["metadata"]) ? null : form["metadata"].ToString();
+
+    var basePath = storageOptions.Value?.BasePath;
+    if (string.IsNullOrWhiteSpace(basePath))
+    {
+        basePath = Path.Combine(Path.GetTempPath(), "dataflow", "imports");
+    }
+
+    var batchId = Guid.NewGuid();
+    var batchDirectory = EnsureBatchDirectory(basePath, batchId);
+    var destinationPath = Path.Combine(batchDirectory, safeFileName);
+    var (checksum, bytesWritten) = await SaveBatchFileAsync(file, destinationPath, cancellationToken);
+    var fileType = ResolveImportFileType(safeFileName, contentType);
+
+    // Carregar client com policies para avaliação
+    await dbContext.Entry(client).Collection(c => c.Policies).LoadAsync(cancellationToken);
+    
+    var batch = new ImportBatch(
+        client.Id,
+        fileType,
+        safeFileName,
+        bytesWritten,
+        checksum,
+        destinationPath,
+        "Immediate",
+        originDefault,
+        requestedBy,
+        metadata,
+        batchId);
+    
+    // Atribuir client para policy evaluator
+    batch.GetType().GetProperty("Client")?.SetValue(batch, client);
+
+    // Avaliar policies
+    var policyDecision = await policyEvaluator.EvaluateAsync(batch, cancellationToken);
+    batch.SetPolicyDecision(policyDecision.Decision);
+    
+    if (policyDecision.ShouldSchedule)
+    {
+        batch.GetType().GetProperty("Status")?.SetValue(batch, 
+            DataFlow.Core.Domain.Enums.ImportBatchStatus.Scheduled);
+    }
+
+    await dbContext.ImportBatches.AddAsync(batch, cancellationToken);
+    await dbContext.SaveChangesAsync(cancellationToken);
+
+    // Publicar evento BatchCreated
+    try
+    {
+        await publishEndpoint.Publish(new BatchCreatedMessage
+        {
+            BatchId = batch.Id,
+            ClientId = client.Id,
+            ClientIdentifier = client.ClientIdentifier,
+            FileName = batch.FileName,
+            FileSizeBytes = batch.FileSizeBytes,
+            PolicyDecision = batch.PolicyDecision,
+            CreatedAt = batch.CreatedAt
+        }, cancellationToken);
+    }
+    catch (Exception ex)
+    {
+        // Log mas não falha a requisição
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Failed to publish BatchCreated event for batch {BatchId}", batch.Id);
+    }
+
+    // Se não foi agendado, publicar BatchReady imediatamente
+    if (!policyDecision.ShouldSchedule)
+    {
+        try
+        {
+            await publishEndpoint.Publish(new BatchReadyMessage
+            {
+                BatchId = batch.Id,
+                ClientId = client.Id,
+                FileName = batch.FileName,
+                ReadyAt = DateTime.UtcNow
+            }, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning(ex, "Failed to publish BatchReady event for batch {BatchId}", batch.Id);
+        }
+    }
+
+    var response = new
+    {
+        batchId = batch.Id,
+        status = batch.Status.ToString(),
+        policyDecision = batch.PolicyDecision,
+        scheduledFor = policyDecision.ScheduledFor,
+        location = $"/imports/{batch.Id}"
+    };
+
+    if (policyDecision.ShouldSchedule)
+    {
+        return Results.Accepted($"/imports/{batch.Id}", response);
+    }
+
+    return Results.Accepted($"/imports/{batch.Id}", response);
+})
+.WithName("CreateImportBatch")
+.WithOpenApi(op =>
+{
+    op.Summary = "Cria um novo batch de importação.";
+    op.Description = "Recebe um arquivo JSON/Excel, armazena temporariamente e registra o lote como Pending.";
+    op.Tags = new List<OpenApiTag> { new() { Name = "Imports" } };
+    op.Responses["202"] = new OpenApiResponse { Description = "Batch aceito para processamento." };
+    op.Responses["400"] = new OpenApiResponse { Description = "Requisição inválida." };
+    op.Responses["401"] = new OpenApiResponse { Description = "Credenciais inválidas." };
+    return op;
+});
+
+app.MapGet("/imports/{batchId:guid}", async (
+    Guid batchId,
+    HttpRequest request,
+    IClientCredentialValidator credentialValidator,
+    IngestionDbContext dbContext,
+    CancellationToken cancellationToken) =>
+{
+    var client = await credentialValidator.ValidateAsync(request, cancellationToken);
+    if (client is null)
+        return Results.Unauthorized();
+
+    var batch = await dbContext.ImportBatches.AsNoTracking()
+        .FirstOrDefaultAsync(b => b.Id == batchId && b.ClientId == client.Id, cancellationToken);
+
+    if (batch is null)
+        return Results.NotFound();
+
+    var response = new
+    {
+        batchId = batch.Id,
+        status = batch.Status.ToString(),
+        fileName = batch.FileName,
+        fileType = batch.FileType.ToString(),
+        createdAt = batch.CreatedAt,
+        startedAt = batch.StartedAt,
+        completedAt = batch.CompletedAt,
+        totalRecords = batch.TotalRecords,
+        processedRecords = batch.ProcessedRecords,
+        policyDecision = batch.PolicyDecision,
+        errorSummary = batch.ErrorSummary
+    };
+
+    return Results.Ok(response);
+})
+.WithName("GetImportBatchStatus")
+.WithOpenApi(op =>
+{
+    op.Summary = "Consulta o status de um batch.";
+    op.Description = "Retorna progresso atualizado para a aplicação cliente.";
+    op.Tags = new List<OpenApiTag> { new() { Name = "Imports" } };
+    op.Responses["200"] = new OpenApiResponse { Description = "Batch encontrado." };
+    op.Responses["401"] = new OpenApiResponse { Description = "Credenciais inválidas." };
+    op.Responses["404"] = new OpenApiResponse { Description = "Batch não localizado." };
+    return op;
+});
 
 // Create ingestion job (multipart/form-data)
 app.MapPost("/ingestion/jobs", async (HttpRequest req, IIngestionOrchestrator orchestrator, IRedisRateLimiter rateLimiter, IChecksumDedupService dedup, IOptionsMonitor<RateLimitOptions> rlOptions, IPublishEndpoint bus, CancellationToken ct) =>
@@ -419,4 +634,123 @@ app.MapGet("/storage/uploads", async (IFileStorageService storage, IDistributedC
     return op;
 });
 
+app.MapPost("/admin/purge", async (
+    HttpRequest request,
+    AdminPurgeRequest payload,
+    IBatchPurgeService purgeService,
+    ILogger<Program> logger,
+    CancellationToken cancellationToken) =>
+{
+    if (!IsAuthorizedAdmin(request, adminApiKey))
+    {
+        logger.LogWarning("Unauthorized purge attempt.");
+        return Results.Unauthorized();
+    }
+
+    if ((payload.BatchIds == null || !payload.BatchIds.Any()) && payload.OlderThanDays is null)
+    {
+        return Results.BadRequest("Informe batchIds ou olderThanDays.");
+    }
+
+    PurgeResult result;
+    if (payload.BatchIds != null && payload.BatchIds.Any())
+    {
+        result = await purgeService.PurgeByIdsAsync(payload.BatchIds, cancellationToken);
+    }
+    else
+    {
+        var days = Math.Max(1, payload.OlderThanDays ?? 30);
+        var max = Math.Max(1, payload.MaxBatches ?? 500);
+        result = await purgeService.PurgeOlderThanAsync(days, max, cancellationToken);
+    }
+
+    return Results.Ok(result);
+})
+.WithTags("Admin")
+.WithName("AdminPurgeBatches")
+.WithOpenApi(op =>
+{
+    op.Summary = "Executa purge administrativo de batches.";
+    op.Description = "Protegido pelo header X-Admin-Key (configurado em Admin:ApiKey).";
+    op.Parameters.Add(new OpenApiParameter
+    {
+        Name = "X-Admin-Key",
+        In = ParameterLocation.Header,
+        Required = true,
+        Description = "Chave de API administrativa."
+    });
+    return op;
+});
+
 app.Run();
+
+static string EnsureBatchDirectory(string basePath, Guid batchId)
+{
+    var directory = Path.Combine(basePath, batchId.ToString("N"));
+    Directory.CreateDirectory(directory);
+    return directory;
+}
+
+static ImportFileType ResolveImportFileType(string fileName, string? contentType)
+{
+    var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+    if (string.Equals(contentType, "application/json", StringComparison.OrdinalIgnoreCase) || extension == ".json")
+    {
+        return ImportFileType.Json;
+    }
+
+    return ImportFileType.Excel;
+}
+
+static async Task<(string checksum, long bytesWritten)> SaveBatchFileAsync(IFormFile file, string destinationPath, CancellationToken cancellationToken)
+{
+    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+    await using var source = file.OpenReadStream();
+    await using var destination = File.Create(destinationPath);
+    using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+    var buffer = ArrayPool<byte>.Shared.Rent(81920);
+    long total = 0;
+    try
+    {
+        int read;
+        while ((read = await source.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)) > 0)
+        {
+            await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            hasher.AppendData(buffer, 0, read);
+            total += read;
+        }
+    }
+    finally
+    {
+        ArrayPool<byte>.Shared.Return(buffer);
+    }
+
+    var checksum = Convert.ToHexString(hasher.GetHashAndReset()).ToLowerInvariant();
+    return (checksum, total);
+}
+
+static bool IsAuthorizedAdmin(HttpRequest request, string? expectedKey)
+{
+    if (string.IsNullOrWhiteSpace(expectedKey))
+        return false;
+    if (!request.Headers.TryGetValue("X-Admin-Key", out var header))
+        return false;
+
+    var provided = header.ToString();
+    if (string.IsNullOrEmpty(provided))
+        return false;
+
+    var providedBytes = System.Text.Encoding.UTF8.GetBytes(provided);
+    var expectedBytes = System.Text.Encoding.UTF8.GetBytes(expectedKey);
+    if (providedBytes.Length != expectedBytes.Length)
+        return false;
+
+    return CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes);
+}
+
+internal record AdminPurgeRequest
+{
+    public List<Guid>? BatchIds { get; init; }
+    public int? OlderThanDays { get; init; }
+    public int? MaxBatches { get; init; }
+}

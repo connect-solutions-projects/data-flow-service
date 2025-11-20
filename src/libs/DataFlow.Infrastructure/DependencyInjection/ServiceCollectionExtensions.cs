@@ -5,6 +5,8 @@ using DataFlow.Infrastructure.Notifications;
 using DataFlow.Infrastructure.Parsers;
 using DataFlow.Infrastructure.Persistence;
 using DataFlow.Infrastructure.Repositories;
+using DataFlow.Infrastructure.Persistence.Seed;
+using DataFlow.Infrastructure.Services;
 using DataFlow.Infrastructure.Storage;
 using DataFlow.Infrastructure.Validation;
 using DataFlow.Shared.Contracts;
@@ -24,32 +26,59 @@ public static class ServiceCollectionExtensions
         var connectionString = configuration.GetConnectionString("DataFlow");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            // Fallback: construir a connection string a partir de variáveis POSTGRES__*
-            var host = configuration["POSTGRES:HOST"] ?? configuration["POSTGRES__HOST"];
-            var port = configuration["POSTGRES:PORT"] ?? configuration["POSTGRES__PORT"];
-            var db = configuration["POSTGRES:DB"] ?? configuration["POSTGRES__DB"];
-            var user = configuration["POSTGRES:USER"] ?? configuration["POSTGRES__USER"];
-            var pass = configuration["POSTGRES:PASSWORD"] ?? configuration["POSTGRES__PASSWORD"];
+            // Fallback: construir a connection string a partir de variáveis SQLSERVER__*
+            var host = configuration["SQLSERVER:HOST"] ?? configuration["SQLSERVER__HOST"];
+            var port = configuration["SQLSERVER:PORT"] ?? configuration["SQLSERVER__PORT"];
+            var db = configuration["SQLSERVER:DATABASE"] ?? configuration["SQLSERVER__DATABASE"];
+            var user = configuration["SQLSERVER:USER"] ?? configuration["SQLSERVER__USER"];
+            var pass = configuration["SQLSERVER:PASSWORD"] ?? configuration["SQLSERVER__PASSWORD"];
 
             if (!string.IsNullOrWhiteSpace(host) &&
                 !string.IsNullOrWhiteSpace(db) &&
                 !string.IsNullOrWhiteSpace(user) &&
                 !string.IsNullOrWhiteSpace(pass))
             {
-                var p = string.IsNullOrWhiteSpace(port) ? "5432" : port;
-                connectionString = $"Host={host};Port={p};Database={db};Username={user};Password={pass}";
+                var resolvedPort = string.IsNullOrWhiteSpace(port) ? string.Empty : $",{port}";
+                connectionString = $"Server={host}{resolvedPort};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;Encrypt=False;";
             }
         }
 
+        services.Configure<ClientSeedOptions>(configuration.GetSection("ClientSeed"));
+        services.AddTransient<ClientSeeder>();
+
         if (!string.IsNullOrWhiteSpace(connectionString))
         {
-            services.AddDbContext<IngestionDbContext>(options => options.UseNpgsql(connectionString));
-            services.AddScoped<IIngestionJobRepository, PostgresIngestionJobRepository>();
+            services.AddDbContext<IngestionDbContext>(options => options.UseSqlServer(connectionString));
+            services.AddScoped<IIngestionJobRepository, SqlIngestionJobRepository>();
+            services.AddScoped<IImportBatchRepository, SqlImportBatchRepository>();
+            services.AddScoped<IImportItemRepository, SqlImportItemRepository>();
+            services.AddScoped<IBatchPurgeService, BatchPurgeService>();
+            
+            // Configurar estratégia de lock (Redis ou SQL Server)
+            services.Configure<DataFlow.Infrastructure.Options.BatchLockOptions>(
+                configuration.GetSection(DataFlow.Infrastructure.Options.BatchLockOptions.SectionName));
+            var lockProvider = configuration.GetValue<string>("BatchLock:Provider", "SqlServer");
+            
+            if (lockProvider.Equals("Redis", StringComparison.OrdinalIgnoreCase))
+            {
+                // Redis lock requer IConnectionMultiplexer (deve estar registrado na API/Worker)
+                services.AddScoped<IBatchLockRepository, DataFlow.Infrastructure.Repositories.RedisBatchLockRepository>();
+            }
+            else
+            {
+                services.AddScoped<IBatchLockRepository, SqlBatchLockRepository>();
+            }
+            
+            // Webhooks
+            services.AddHttpClient("WebhookDelivery");
+            services.AddScoped<DataFlow.Core.Domain.Contracts.IWebhookDeliveryService, 
+                DataFlow.Infrastructure.Webhooks.WebhookDeliveryService>();
         }
         else
         {
             // Fallback para repositório em memória quando não há connection string
             services.AddSingleton<IIngestionJobRepository, InMemoryIngestionJobRepository>();
+            services.AddSingleton<IBatchPurgeService, NullBatchPurgeService>();
         }
 
         // ----------------------------
@@ -65,6 +94,16 @@ public static class ServiceCollectionExtensions
         // ----------------------------
         // HttpClient base para integrações (ajuste políticas aqui se quiser)
         services.AddHttpClient("integrations");
+        
+        // HttpClient para OmniFlow
+        services.AddHttpClient("OmniFlow", (sp, client) =>
+        {
+            var baseUrl = configuration.GetValue<string>("OmniFlow:BaseUrl");
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            }
+        });
 
         // IPrometheusClient -> PrometheusClient
         services.AddSingleton<IPrometheusClient>(sp =>

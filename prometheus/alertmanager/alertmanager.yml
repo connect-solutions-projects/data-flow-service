@@ -1,0 +1,51 @@
+global:
+  resolve_timeout: 5m
+
+# Templates de notificação (opcional)
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Roteamento de alertas
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default-receiver'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+    - match:
+        service: dataflow
+      receiver: 'dataflow-receiver'
+
+# Receivers (destinos de notificação)
+receivers:
+  - name: 'default-receiver'
+    # Configurar aqui: email, Slack, PagerDuty, etc.
+    # Por enquanto, apenas log
+    webhook_configs:
+      - url: 'http://localhost:8080/webhooks/alertmanager'
+        send_resolved: true
+
+  - name: 'critical-receiver'
+    # Para alertas críticos, pode usar PagerDuty, Teams, etc.
+    webhook_configs:
+      - url: 'http://localhost:8080/webhooks/alertmanager/critical'
+        send_resolved: true
+
+  - name: 'dataflow-receiver'
+    # Receiver específico para DataFlow
+    webhook_configs:
+      - url: 'http://localhost:8080/webhooks/alertmanager/dataflow'
+        send_resolved: true
+
+# Inibição de alertas (evitar spam)
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+

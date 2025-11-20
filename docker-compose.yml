@@ -41,16 +41,21 @@ services:
       DOTNET_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
 
       # Conexões apontando para os containers da rede dev_net
-      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-postgres};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-supersecret_admin}"
+      ConnectionStrings__DataFlow: "Data Source=sqlserver,1433;Initial Catalog=DataFlowDev;User ID=sa;Password=${SQLSERVER_SA_PASSWORD:-DataFlow@Dolar$};Encrypt=True;TrustServerCertificate=True"
       ConnectionStrings__Redis: "redis:6379"
       Rabbit__Connection: "amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-supersecret_admin}@rabbitmq:5672/"
 
-      # (opcional) variáveis separadas
-      POSTGRES__HOST: postgres
-      POSTGRES__PORT: "5432"
-      POSTGRES__DB: "${POSTGRES_DB:-postgres}"
-      POSTGRES__USER: "${POSTGRES_USER:-postgres}"
-      POSTGRES__PASSWORD: "${POSTGRES_PASSWORD:-supersecret_admin}"
+      # Import Storage
+      ImportStorage__BasePath: "/var/dataflow/imports"
+      
+      # OmniFlow
+      OmniFlow__BaseUrl: "${OMNIFLOW_BASE_URL:-http://omniflow-api:5000}"
+      
+      # Import Batch
+      ImportBatch__ChunkSize: "${IMPORT_BATCH_CHUNK_SIZE:-100}"
+      ImportBatch__PollIntervalSeconds: "${IMPORT_BATCH_POLL_INTERVAL:-30}"
+      ImportBatch__LockTimeoutMinutes: "${IMPORT_BATCH_LOCK_TIMEOUT:-30}"
+      ImportBatch__MaxRetries: "${IMPORT_BATCH_MAX_RETRIES:-3}"
       REDIS__HOST: redis
       REDIS__PORT: "6379"
       RABBIT__HOST: rabbitmq
@@ -58,6 +63,11 @@ services:
       RABBIT__USER: "${RABBITMQ_USER:-admin}"
       RABBIT__PASSWORD: "${RABBITMQ_PASSWORD:-supersecret_admin}"
       RABBIT__VHOST: "/"
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: "${RABBITMQ_USER:-admin}"
+      RabbitMq__Password: "${RABBITMQ_PASSWORD:-supersecret_admin}"
+      RabbitMq__VirtualHost: "/"
       # OpenTelemetry OTLP endpoint
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
       # Variáveis usadas pelo wait-for-rabbit.sh
@@ -65,6 +75,11 @@ services:
       RABBITMQ_USER: admin
       RABBITMQ_PASSWORD: supersecret_admin
       RABBITMQ_MGMT_PORT: "15672"
+      ClientSeed__Clients__0__Name: "Local Test"
+      ClientSeed__Clients__0__ClientIdentifier: "local-client"
+      ClientSeed__Clients__0__Secret: "local-secret-123"
+    volumes:
+      - dataflow_imports:/var/dataflow/imports
     networks:
       - dev_net
     restart: unless-stopped
@@ -79,16 +94,25 @@ services:
     build:
       context: .                                # também builda do root
       dockerfile: src/apps/DataFlow.Worker/Dockerfile
+    expose:
+      - "9090"  # Prometheus metrics endpoint
     environment:
       DOTNET_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
-      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-postgres};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-supersecret_admin}"
+      ConnectionStrings__DataFlow: "Data Source=sqlserver,1433;Initial Catalog=DataFlowDev;User ID=sa;Password=${SQLSERVER_SA_PASSWORD:-DataFlow@Dolar$};Encrypt=True;TrustServerCertificate=True"
       ConnectionStrings__Redis: "redis:6379"
       Rabbit__Connection: "amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-supersecret_admin}@rabbitmq:5672/"
-      POSTGRES__HOST: postgres
-      POSTGRES__PORT: "5432"
-      POSTGRES__DB: "${POSTGRES_DB:-postgres}"
-      POSTGRES__USER: "${POSTGRES_USER:-postgres}"
-      POSTGRES__PASSWORD: "${POSTGRES_PASSWORD:-supersecret_admin}"
+      
+      # Import Storage
+      ImportStorage__BasePath: "/var/dataflow/imports"
+      
+      # OmniFlow
+      OmniFlow__BaseUrl: "${OMNIFLOW_BASE_URL:-http://omniflow-api:5000}"
+      
+      # Import Batch
+      ImportBatch__ChunkSize: "${IMPORT_BATCH_CHUNK_SIZE:-100}"
+      ImportBatch__PollIntervalSeconds: "${IMPORT_BATCH_POLL_INTERVAL:-30}"
+      ImportBatch__LockTimeoutMinutes: "${IMPORT_BATCH_LOCK_TIMEOUT:-30}"
+      ImportBatch__MaxRetries: "${IMPORT_BATCH_MAX_RETRIES:-3}"
       REDIS__HOST: redis
       REDIS__PORT: "6379"
       RABBIT__HOST: rabbitmq
@@ -96,8 +120,15 @@ services:
       RABBIT__USER: "${RABBITMQ_USER:-admin}"
       RABBIT__PASSWORD: "${RABBITMQ_PASSWORD:-supersecret_admin}"
       RABBIT__VHOST: "/"
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: "${RABBITMQ_USER:-admin}"
+      RabbitMq__Password: "${RABBITMQ_PASSWORD:-supersecret_admin}"
+      RabbitMq__VirtualHost: "/"
       # OpenTelemetry OTLP endpoint
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+    volumes:
+      - dataflow_imports:/var/dataflow/imports
     networks:
       - dev_net
     restart: unless-stopped
@@ -121,3 +152,7 @@ services:
       - dev_net
     restart: unless-stopped
     profiles: ["reporting"]
+
+volumes:
+  dataflow_imports:
+    driver: local

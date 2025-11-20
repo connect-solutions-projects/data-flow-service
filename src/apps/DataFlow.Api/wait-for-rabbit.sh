@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+﻿#!/bin/sh
 set -e
 
 RABBIT_USER="${RABBITMQ_USER:-admin}"

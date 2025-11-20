@@ -31,11 +31,13 @@ RUN dotnet publish ./apps/DataFlow.Api/DataFlow.Api.csproj -c Release -o /app/pu
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-## Instala wget para o script de espera do RabbitMQ
-RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates && rm -rf /var/lib/apt/lists/*
+## Instala wget e dos2unix para o script de espera do RabbitMQ
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates dos2unix && rm -rf /var/lib/apt/lists/*
 
-## copia e registra o script
-COPY src/apps/DataFlow.Api/wait-for-rabbit.sh /usr/local/bin/wait-for-rabbit.sh
-RUN chmod +x /usr/local/bin/wait-for-rabbit.sh
+## copia e registra o script (converte line endings para LF e garante formato Unix)
+COPY src/apps/DataFlow.Api/wait-for-rabbit.sh /tmp/wait-for-rabbit.sh
+RUN dos2unix /tmp/wait-for-rabbit.sh && \
+    chmod +x /tmp/wait-for-rabbit.sh && \
+    mv /tmp/wait-for-rabbit.sh /usr/local/bin/wait-for-rabbit.sh
 
-ENTRYPOINT ["/usr/local/bin/wait-for-rabbit.sh"]
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/wait-for-rabbit.sh"]
